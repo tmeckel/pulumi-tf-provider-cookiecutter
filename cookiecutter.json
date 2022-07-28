@@ -1,16 +1,23 @@
 {
-    "provider_name": "terraform-provider-name",
-    "provider": "pulumi-{{ cookiecutter.provider_name }}",
-    "provider_display_name": "Pulumi {{ cookiecutter.provider_name }} provider",
-    "github_organization": "pulumiverse",
-    "publisher": "{{ cookiecutter.github_organization }}",
+    "terraform_provider_name": "terraform-provider-name",
+    "terraform_provider_package_name": "{{ cookiecutter.terraform_provider_name }}",
     "terraform_provider_org": "terraform-providers",
-    "terraform_provider_source": "github.com/{{ cookiecutter.terraform_provider_org }}/terraform-provider-{{ cookiecutter.provider_name }}",
-    "terraform_provider_version": "v0.0.0",
-    "homepage": "https://www.pulumi.com",
-    "javascript_package": "@pulumiverse/{{ cookiecutter.provider_name }}",
-    "dotnet_rootnamespace": "Pulumiverse",
-    "python_package": "pulumiverse_{{ cookiecutter.provider_name }}",
+    "terraform_provider_source": "github.com/{{ cookiecutter.terraform_provider_org }}/terraform-provider-{{ cookiecutter.terraform_provider_name }}",
+    "terraform_provider_version": "0.0.0",
+    "provider": "pulumi-{{ cookiecutter.terraform_provider_name }}",
+    "provider_display_name": "Pulumi {{ cookiecutter.terraform_provider_name }} provider",
+    "provider_github_organization": "pulumiverse",
+    "provider_publisher": "{{ cookiecutter.provider_github_organization }}",
+    "provider_homepage": "https://github.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}",
+    "provider_javascript_package": "@pulumiverse/{{ cookiecutter.terraform_provider_name }}",
+    "provider_dotnet_rootnamespace": "Pulumiverse",
+    "provider_python_package": "pulumiverse_{{ cookiecutter.terraform_provider_name }}",
     "create_shim": "no",
-    "terraform_provider_internal_name": ""
+    "terraform_provider_internal_package": "internal/{{ cookiecutter.terraform_provider_package_name }}",
+    "create_github_workflows": "yes",
+    "skip_go_mod_tidy": "no",
+
+    "_copy_without_render": [
+        ".github/workflows/release.yml"
+    ]
 }

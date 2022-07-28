@@ -2,9 +2,9 @@
     {{ text[0]|upper }}{{ text[1:] }}
 {%- endmacro -%}
 
-# {{ sentence_case(cookiecutter.provider_name) }} Resource Provider
+# {{ sentence_case(cookiecutter.terraform_provider_name) }} Resource Provider
 
-The {{ sentence_case(cookiecutter.provider_name) }} Resource Provider lets you manage [{{ cookiecutter.provider_name }}](http://example.com) resources.
+The {{ sentence_case(cookiecutter.terraform_provider_name) }} Resource Provider lets you manage [{{ cookiecutter.terraform_provider_name }}](http://example.com) resources.
 
 ## Installing
 
@@ -15,13 +15,13 @@ This package is available for several languages/platforms:
 To use from JavaScript or TypeScript in Node.js, install using either `npm`:
 
 ```bash
-npm install {{ cookiecutter.javascript_package }}
+npm install {{ cookiecutter.provider_javascript_package }}
 ```
 
 or `yarn`:
 
 ```bash
-yarn add {{ cookiecutter.javascript_package }}
+yarn add {{ cookiecutter.provider_javascript_package }}
 ```
 
 ### Python
@@ -29,7 +29,7 @@ yarn add {{ cookiecutter.javascript_package }}
 To use from Python, install using `pip`:
 
 ```bash
-pip install {{ cookiecutter.python_package }}
+pip install {{ cookiecutter.provider_python_package }}
 ```
 
 ### Go
@@ -37,7 +37,7 @@ pip install {{ cookiecutter.python_package }}
 To use from Go, use `go get` to grab the latest version of the library:
 
 ```bash
-go get github.com/{{ cookiecutter.github_organization }}/pulumi-{{ cookiecutter.provider_name }}/sdk/go/...
+go get github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/sdk/go/...
 ```
 
 ### .NET
@@ -45,16 +45,16 @@ go get github.com/{{ cookiecutter.github_organization }}/pulumi-{{ cookiecutter.
 To use from .NET, install using `dotnet add package`:
 
 ```bash
-dotnet add package {{ cookiecutter.dotnet_rootnamespace }}.{{ cookiecutter.provider_name }}
+dotnet add package {{ cookiecutter.provider_dotnet_rootnamespace }}.{{ cookiecutter.terraform_provider_name }}
 ```
 
 ## Configuration
 
-The following configuration points are available for the `{{ cookiecutter.provider_name }}` provider:
+The following configuration points are available for the `{{ cookiecutter.terraform_provider_name }}` provider:
 
-- `{{ cookiecutter.provider_name }}:apiKey` (environment: `{{ cookiecutter.provider_name }}_API_KEY`) - the API key for `{{ cookiecutter.provider_name }}`
-- `{{ cookiecutter.provider_name }}:region` (environment: `{{ cookiecutter.provider_name }}_REGION`) - the region in which to deploy resources
+- `{{ cookiecutter.terraform_provider_name }}:apiKey` (environment: `{{ cookiecutter.terraform_provider_name }}_API_KEY`) - the API key for `{{ cookiecutter.terraform_provider_name }}`
+- `{{ cookiecutter.terraform_provider_name }}:region` (environment: `{{ cookiecutter.terraform_provider_name }}_REGION`) - the region in which to deploy resources
 
 ## Reference
 
-For detailed reference documentation, please visit [the Pulumi registry](https://www.pulumi.com/registry/packages/{{ cookiecutter.provider_name }}/api-docs/).
+For detailed reference documentation, please visit [the Pulumi registry](https://www.pulumi.com/registry/packages/{{ cookiecutter.terraform_provider_name }}/api-docs/).

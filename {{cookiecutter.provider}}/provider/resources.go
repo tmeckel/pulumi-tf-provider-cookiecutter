@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package {{ cookiecutter.provider_name }}
+package {{ cookiecutter.terraform_provider_name }}
 
 import (
 	"fmt"
@@ -21,12 +21,12 @@ import (
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
 	shimv2 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v2"
-	"github.com/{{ cookiecutter.github_organization }}/pulumi-{{ cookiecutter.provider_name }}/provider/pkg/version"
+	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	{% if cookiecutter.create_shim | lower in [ 'true', '1', 'yes', 'y' ] -%}
 	shimprovider "{{ cookiecutter.terraform_provider_source }}/shim"
 	{% else -%}
-	"{{ cookiecutter.terraform_provider_source }}"
+	"{{ cookiecutter.terraform_provider_source }}/{{ cookiecutter.terraform_provider_package_name }}"
 	{%- endif %}
 )
 
@@ -34,9 +34,9 @@ import (
 const (
 	// This variable controls the default name of the package in the package
 	// registries for nodejs and python:
-	mainPkg = "{{ cookiecutter.provider_name }}"
+	mainPkg = "{{ cookiecutter.terraform_provider_name }}"
 	// modules:
-	mainMod = "index" // the {{ cookiecutter.provider_name }} module
+	mainMod = "index" // the {{ cookiecutter.terraform_provider_name }} module
 )
 
 // preConfigureCallback is called before the providerConfigure function of the underlying provider.
@@ -53,13 +53,13 @@ func Provider() tfbridge.ProviderInfo {
 	{% if cookiecutter.create_shim | lower in [ 'true', '1', 'yes', 'y' ] -%}
 	p := shimv2.NewProvider(shimprovider.NewProvider())
 	{% else -%}
-	p := shimv2.NewProvider({{ cookiecutter.provider_name }}.Provider())
+	p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
 	{%- endif -%}
 
 	// Create a Pulumi provider mapping
 	prov := tfbridge.ProviderInfo{
 		P:    p,
-		Name: "{{ cookiecutter.provider_name }}",
+		Name: "{{ cookiecutter.terraform_provider_name }}",
 		// DisplayName is a way to be able to change the casing of the provider
 		// name when being displayed on the Pulumi registry
 		DisplayName: "{{ cookiecutter.provider_display_name }}",
@@ -67,7 +67,7 @@ func Provider() tfbridge.ProviderInfo {
 		// Change this to your personal name (or a company name) that you
 		// would like to be shown in the Pulumi Registry if this package is published
 		// there.
-		Publisher: "{{ cookiecutter.publisher }}",
+		Publisher: "{{ cookiecutter.provider_publisher }}",
 		// LogoURL is optional but useful to help identify your package in the Pulumi Registry
 		// if this package is published there.
 		//
@@ -78,14 +78,14 @@ func Provider() tfbridge.ProviderInfo {
 		// for use in Pulumi programs
 		// e.g https://github.com/org/pulumi-provider-name/releases/
 		PluginDownloadURL: "",
-		Description:       "A Pulumi package for creating and managing {{ cookiecutter.provider_name }} cloud resources.",
+		Description:       "A Pulumi package for creating and managing {{ cookiecutter.terraform_provider_name }} cloud resources.",
 		// category/cloud tag helps with categorizing the package in the Pulumi Registry.
 		// For all available categories, see `Keywords` in
 		// https://www.pulumi.com/docs/guides/pulumi-packages/schema/#package.
-		Keywords:   []string{"pulumi", "{{ cookiecutter.provider_name }}", "category/cloud"},
+		Keywords:   []string{"pulumi", "{{ cookiecutter.terraform_provider_name }}", "category/cloud"},
 		License:    "Apache-2.0",
-		Homepage:   "{{ cookiecutter.homepage }}",
-		Repository: "https://github.com/{{ cookiecutter.github_organization }}/pulumi-{{ cookiecutter.provider_name }}",
+		Homepage:   "{{ cookiecutter.provider_homepage }}",
+		Repository: "https://github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}",
 		// The GitHub Org for the provider - defaults to `terraform-providers`. Note that this
 		// should match the TF provider module's require directive, not any replace directives.
 		GitHubOrg: "{{ cookiecutter.terraform_provider_org }}",
@@ -120,7 +120,7 @@ func Provider() tfbridge.ProviderInfo {
 			// "aws_ami": {Tok: tfbridge.MakeDataSource(mainPkg, mainMod, "getAmi")},
 		},
 		JavaScript: &tfbridge.JavaScriptInfo{
-			PackageName: "{{ cookiecutter.javascript_package }}",
+			PackageName: "{{ cookiecutter.provider_javascript_package }}",
 
 			// List any npm dependencies and their versions
 			Dependencies: map[string]string{
@@ -136,7 +136,7 @@ func Provider() tfbridge.ProviderInfo {
 			//Overlay: &tfbridge.OverlayInfo{},
 		},
 		Python: &tfbridge.PythonInfo{
-			PackageName: "{{ cookiecutter.python_package }}",
+			PackageName: "{{ cookiecutter.provider_python_package }}",
 
 			// List any Python dependencies and their version ranges
 			Requires: map[string]string{
@@ -153,7 +153,7 @@ func Provider() tfbridge.ProviderInfo {
 			GenerateResourceContainerTypes: true,
 		},
 		CSharp: &tfbridge.CSharpInfo{
-			RootNamespace: "{{ cookiecutter.dotnet_rootnamespace }}",
+			RootNamespace: "{{ cookiecutter.provider_dotnet_rootnamespace }}",
 
 			PackageReferences: map[string]string{
 				"Pulumi": "3.*",

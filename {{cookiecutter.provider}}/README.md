@@ -13,7 +13,7 @@ The following instructions cover:
 - providers maintained by Pulumi (denoted with a "Pulumi Official" checkmark on the Pulumi registry)
 - providers published and maintained by the Pulumi community, referred to as "third-party" providers
 
-We showcase a Pulumi-owned provider based on an upstream provider named `terraform-provider-{{ cookiecutter.provider_name }}`.  Substitute appropriate values below for your use case.
+We showcase a Pulumi-owned provider based on an upstream provider named `terraform-provider-{{ cookiecutter.terraform_provider_name }}`.  Substitute appropriate values below for your use case.
 
 > Note: If the name of the desired Pulumi provider differs from the name of the Terraform provider, you will need to carefully distinguish between the references - see <https://github.com/pulumi/pulumi-azure> for an example.
 
@@ -35,21 +35,21 @@ Pulumi provider repositories have the following general structure:
 
 * `examples/` contains sample code which may optionally be included as integration tests to be run as part of a CI/CD pipeline.
 * `provider/` contains the Go code used to create the provider as well as generate the SDKs in the various languages that Pulumi supports.
-  * `provider/cmd/pulumi-tfgen-{{ cookiecutter.provider_name }}` generates the Pulumi resource schema (`schema.json`), based on the Terraform provider's resources.
-  * `provider/cmd/pulumi-resource-{{ cookiecutter.provider_name }}` generates the SDKs in all supported languages from the schema, placing them in the `sdk/` folder.
+  * `provider/cmd/pulumi-tfgen-{{ cookiecutter.terraform_provider_name }}` generates the Pulumi resource schema (`schema.json`), based on the Terraform provider's resources.
+  * `provider/cmd/pulumi-resource-{{ cookiecutter.terraform_provider_name }}` generates the SDKs in all supported languages from the schema, placing them in the `sdk/` folder.
   * `provider/pkg/resources.go` is the location where we will define the Terraform-to-Pulumi mappings for resources.
 * `sdk/` contains the generated SDK code for each of the language platforms that Pulumi supports, with each supported platform in a separate subfolder.
 
 1. In `provider/go.mod`, add a reference to the upstream Terraform provider in the `require` section, e.g.
 
     ```go
-    github.com/foo/terraform-provider-{{ cookiecutter.provider_name }} v0.4.0
+    github.com/foo/terraform-provider-{{ cookiecutter.terraform_provider_name }} v0.4.0
     ```
 
 1. In `provider/resources.go`, ensure the reference in the `import` section uses the correct Go module path, e.g.:
 
     ```go
-    github.com/foo/terraform-provider-{{ cookiecutter.provider_name }}/{{ cookiecutter.provider_name }}
+    github.com/foo/terraform-provider-{{ cookiecutter.terraform_provider_name }}/{{ cookiecutter.terraform_provider_name }}
     ```
 
 1. Download the dependencies:
@@ -67,10 +67,10 @@ Pulumi provider repositories have the following general structure:
     Note warnings about unmapped resources and data sources in the command's output.  We map these in the next section, e.g.:
 
     ```text
-    warning: resource {{ cookiecutter.provider_name }}_something not found in provider map; skipping
-    warning: resource {{ cookiecutter.provider_name }}_something_else not found in provider map; skipping
-    warning: data source {{ cookiecutter.provider_name }}_something not found in provider map; skipping
-    warning: data source {{ cookiecutter.provider_name }}_something_else not found in provider map; skipping
+    warning: resource {{ cookiecutter.terraform_provider_name }}_something not found in provider map; skipping
+    warning: resource {{ cookiecutter.terraform_provider_name }}_something_else not found in provider map; skipping
+    warning: data source {{ cookiecutter.terraform_provider_name }}_something not found in provider map; skipping
+    warning: data source {{ cookiecutter.terraform_provider_name }}_something_else not found in provider map; skipping
     ```
 
 ## Adding Mappings, Building the Provider and SDKs
@@ -85,8 +85,8 @@ The following instructions all pertain to `provider/resources.go`, in the sectio
     // Most providers will have all resources (and data sources) in the main module.
     // Note the mapping from snake_case HCL naming conventions to UpperCamelCase Pulumi SDK naming conventions.
     // The name of the provider is omitted from the mapped name due to the presence of namespaces in all supported Pulumi languages.
-    "{{ cookiecutter.provider_name }}_something":      {Tok: tfbridge.MakeResource(mainPkg, mainMod, "Something")},
-    "{{ cookiecutter.provider_name }}_something_else": {Tok: tfbridge.MakeResource(mainPkg, mainMod, "SomethingElse")},
+    "{{ cookiecutter.terraform_provider_name }}_something":      {Tok: tfbridge.MakeResource(mainPkg, mainMod, "Something")},
+    "{{ cookiecutter.terraform_provider_name }}_something_else": {Tok: tfbridge.MakeResource(mainPkg, mainMod, "SomethingElse")},
     ```
 
 1. **Add CSharpName (if necessary):** Dotnet does not allow for fields named the same as the enclosing type, which sometimes results in errors during the dotnet SDK build.
@@ -97,7 +97,7 @@ The following instructions all pertain to `provider/resources.go`, in the sectio
     you'll want to give your Resource a CSharpName, which can have any value that makes sense:
 
     ```go
-    "{{ cookiecutter.provider_name }}_something_dotnet": {
+    "{{ cookiecutter.terraform_provider_name }}_something_dotnet": {
         Tok: tfbridge.MakeResource(mainPkg, mainMod, "SomethingDotnet"),
         Fields: map[string]*tfbridge.SchemaInfo{
             "something_dotnet": {
@@ -112,17 +112,17 @@ The following instructions all pertain to `provider/resources.go`, in the sectio
 
     ```go
     // Note the 'get' prefix for data sources
-    "{{ cookiecutter.provider_name }}_something":      {Tok: tfbridge.MakeDataSource(mainPkg, mainMod, "getSomething")},
-    "{{ cookiecutter.provider_name }}_something_else": {Tok: tfbridge.MakeDataSource(mainPkg, mainMod, "getSomethingElse")},
+    "{{ cookiecutter.terraform_provider_name }}_something":      {Tok: tfbridge.MakeDataSource(mainPkg, mainMod, "getSomething")},
+    "{{ cookiecutter.terraform_provider_name }}_something_else": {Tok: tfbridge.MakeDataSource(mainPkg, mainMod, "getSomethingElse")},
     ```
 
 1. **Add documentation mapping (sometimes needed):**  If the upstream provider's repo is not a part of the `terraform-providers` GitHub organization, specify the `GitHubOrg` property of `tfbridge.ProviderInfo` to ensure that documentation is picked up by the codegen process, and that attribution for the upstream provider is correct, e.g.:
 
     ```go
-    GitHubOrg: "{{ cookiecutter.github_organization }}",
+    GitHubOrg: "{{ cookiecutter.provider_github_organization }}",
     ```
 
-1. **Add provider configuration overrides (not typically needed):** Pulumi's Terraform bridge automatically detects configuration options for the upstream provider.  However, in rare cases these settings may need to be overridden, e.g. if we want to change an environment variable default from `API_KEY` to `{{ cookiecutter.provider_name }}_API_KEY`.  Examples of common uses cases:
+1. **Add provider configuration overrides (not typically needed):** Pulumi's Terraform bridge automatically detects configuration options for the upstream provider.  However, in rare cases these settings may need to be overridden, e.g. if we want to change an environment variable default from `API_KEY` to `{{ cookiecutter.terraform_provider_name }}_API_KEY`.  Examples of common uses cases:
 
     ```go
     "additional_required_parameter": {},
@@ -137,7 +137,7 @@ The following instructions all pertain to `provider/resources.go`, in the sectio
     // Renamed environment variables can be accounted for like so:
     "apikey": {
         Default: &tfbridge.DefaultInfo{
-            EnvVars: []string{"{{ cookiecutter.provider_name }}_API_KEY"},
+            EnvVars: []string{"{{ cookiecutter.terraform_provider_name }}_API_KEY"},
         },
     ```
 
@@ -184,10 +184,10 @@ In this section, we will create a Pulumi program in TypeScript that utilizes the
     * Password: (Create a random password in 1Password with the  maximum length and complexity allowed by the provider.)
     * Ensure all secrets (passwords, generated API keys) are stored in Pulumi's 1Password vault.
 
-1. Copy the `pulumi-resource-{{ cookiecutter.provider_name }}` binary generated by `make provider` and place it in your `$PATH` (`$GOPATH/bin` is a convenient choice), e.g.:
+1. Copy the `pulumi-resource-{{ cookiecutter.terraform_provider_name }}` binary generated by `make provider` and place it in your `$PATH` (`$GOPATH/bin` is a convenient choice), e.g.:
 
     ```bash
-    cp bin/pulumi-resource-{{ cookiecutter.provider_name }} $GOPATH/bin
+    cp bin/pulumi-resource-{{ cookiecutter.terraform_provider_name }} $GOPATH/bin
     ```
 
 1. Tell Yarn to use your local copy of the SDK:
@@ -204,7 +204,7 @@ In this section, we will create a Pulumi program in TypeScript that utilizes the
     pulumi new typescript
     # (Go through the prompts with the default values)
     npm install
-    yarn link {{ cookiecutter.javascript_package }}
+    yarn link {{ cookiecutter.provider_javascript_package }}
     ```
 
 1. Create a minimal program for the provider, i.e. one that creates the smallest-footprint resource.  Place this code in `index.ts`.
@@ -223,7 +223,7 @@ Optionally, you may create additional examples for SDKs in other languages suppo
     pulumi new python
     # (Go through the prompts with the default values)
     source venv/bin/activate # use the virtual Python env that Pulumi sets up for you
-    pip install pulumi_{{ cookiecutter.provider_name }}
+    pip install pulumi_{{ cookiecutter.terraform_provider_name }}
     ```
 
 1. Follow the steps above to verify the program runs successfully.

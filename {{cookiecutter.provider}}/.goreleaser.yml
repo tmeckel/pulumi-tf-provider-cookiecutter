@@ -1,0 +1,29 @@
+archives:
+  - id: archive
+    name_template: {% raw %}'{{ .Binary }}-{{ .Tag }}-{{ .Os }}-{{ .Arch }}'{% endraw %}
+before:
+  hooks:
+    - make tfgen
+builds:
+  - binary: pulumi-resource-xyz
+    dir: provider
+    env:
+      - CGO_ENABLED=0
+    goarch:
+      - amd64
+      - arm64
+    goos:
+      - darwin
+      - windows
+      - linux
+    ldflags:
+      # The line below MUST align with the module in current provider/go.mod
+      - -X github.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}/provider/pkg/version.Version={% raw %}{{.Tag }}{% endraw %}
+    main: ./cmd/pulumi-resource-{{ cookiecutter.terraform_provider_name }}/
+changelog:
+  skip: true
+release:
+  disable: false
+  prerelease: auto
+snapshot:
+  name_template: {% raw %}'{{ .Tag }}-SNAPSHOT'{% endraw %}

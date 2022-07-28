@@ -1,12 +1,12 @@
 SHELL            := /bin/bash
-PROJECT          := github.com/{{ cookiecutter.github_organization }}/pulumi-{{ cookiecutter.provider_name }}
-NODE_MODULE_NAME := {{ cookiecutter.javascript_package }}
-TF_NAME          := {{ cookiecutter.provider_name }}
+PROJECT          := github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}
+NODE_MODULE_NAME := {{ cookiecutter.provider_javascript_package }}
+TF_NAME          := {{ cookiecutter.terraform_provider_name }}
 PROVIDER_PATH    := provider
 VERSION_PATH     := ${PROVIDER_PATH}/pkg/version.Version
 
-TFGEN           := pulumi-tfgen-{{ cookiecutter.provider_name }}
-PROVIDER        := pulumi-resource-{{ cookiecutter.provider_name }}
+TFGEN           := pulumi-tfgen-{{ cookiecutter.terraform_provider_name }}
+PROVIDER        := pulumi-resource-{{ cookiecutter.terraform_provider_name }}
 VERSION         := $(shell pulumictl get version)
 
 TESTPARALLELISM := 4
