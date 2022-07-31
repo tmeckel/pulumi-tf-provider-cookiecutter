@@ -19,5 +19,8 @@
 
     "_copy_without_render": [
         ".github/workflows/release.yml"
+    ],
+    "_extensions": [
+        "local_extensions.FilterExtension"
     ]
 }
