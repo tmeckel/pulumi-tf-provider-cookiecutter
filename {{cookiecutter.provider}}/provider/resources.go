@@ -159,6 +159,9 @@ func Provider() tfbridge.ProviderInfo {
 				"Pulumi": "3.*",
 			},
 		},
+		Java: &tfbridge.JavaInfo{
+			BasePackage: "{{ cookiecutter.provider_java_base_package }}",
+		},
 	}
 
 	prov.SetAutonaming(255, "-")

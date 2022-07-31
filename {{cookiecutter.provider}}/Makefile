@@ -5,13 +5,15 @@ TF_NAME          := {{ cookiecutter.terraform_provider_name }}
 PROVIDER_PATH    := provider
 VERSION_PATH     := ${PROVIDER_PATH}/pkg/version.Version
 
-TFGEN           := pulumi-tfgen-{{ cookiecutter.terraform_provider_name }}
-PROVIDER        := pulumi-resource-{{ cookiecutter.terraform_provider_name }}
-VERSION         := $(shell pulumictl get version)
+JAVA_GEN 		 := pulumi-java-gen
+JAVA_GEN_VERSION := v0.5.0
+TFGEN            := pulumi-tfgen-{{ cookiecutter.terraform_provider_name }}
+PROVIDER         := pulumi-resource-{{ cookiecutter.terraform_provider_name }}
+VERSION          := $(shell pulumictl get version)
 
-TESTPARALLELISM := 4
+TESTPARALLELISM  := 4
 
-WORKING_DIR     := $(shell pwd)
+WORKING_DIR      := $(shell pwd)
 
 OS := $(shell uname)
 EMPTY_TO_AVOID_SED := ""
@@ -65,6 +67,16 @@ build_dotnet:: install_plugins tfgen # build the dotnet sdk
 
 build_go:: install_plugins tfgen # build the go sdk
 	$(WORKING_DIR)/bin/$(TFGEN) go --overlays provider/overlays/go --out sdk/go/
+
+build_java:: PACKAGE_VERSION := $(shell pulumictl get version --language generic)
+build_java:: $(WORKING_DIR)/bin/$(JAVA_GEN)
+	$(WORKING_DIR)/bin/$(JAVA_GEN) generate --schema provider/cmd/$(PROVIDER)/schema.json --out sdk/java  --build gradle-nexus
+	cd sdk/java/ && \
+		echo "module fake_java_module // Exclude this directory from Go tools\n\ngo 1.17" > go.mod && \
+		gradle --console=plain build
+
+$(WORKING_DIR)/bin/$(JAVA_GEN)::
+	$(shell pulumictl download-binary -n pulumi-language-java -v $(JAVA_GEN_VERSION) -r pulumi/pulumi-java)
 
 lint_provider:: provider # lint the provider code
 	cd provider && golangci-lint run -c ../.golangci.yml

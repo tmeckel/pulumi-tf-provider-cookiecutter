@@ -12,6 +12,7 @@
     "provider_javascript_package": "@pulumiverse/{{ cookiecutter.terraform_provider_name }}",
     "provider_dotnet_rootnamespace": "Pulumiverse",
     "provider_python_package": "pulumiverse_{{ cookiecutter.terraform_provider_name }}",
+    "provider_java_base_package": "com.{{ cookiecutter.provider_github_organization }}",
     "create_shim": "no",
     "terraform_provider_internal_package": "internal/{{ cookiecutter.terraform_provider_package_name }}",
     "create_github_workflows": "yes",
