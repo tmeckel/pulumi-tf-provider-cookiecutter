@@ -4,7 +4,7 @@
 
 # {{ sentence_case(cookiecutter.terraform_provider_name) }} Resource Provider
 
-The {{ sentence_case(cookiecutter.terraform_provider_name) }} Resource Provider lets you manage [{{ cookiecutter.terraform_provider_name }}](http://example.com) resources.
+The {{ sentence_case(cookiecutter.terraform_provider_name) }} Resource Provider lets you manage [{{ cookiecutter.terraform_provider_name }}](https://registry.terraform.io/providers/{{ cookiecutter.terraform_provider_org }}/{{ cookiecutter.terraform_provider_name }}) resources.
 
 ## Installing
 
