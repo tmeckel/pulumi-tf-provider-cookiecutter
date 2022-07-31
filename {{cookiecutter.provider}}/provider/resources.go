@@ -23,7 +23,7 @@ import (
 	shimv2 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v2"
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
-	{% if cookiecutter.create_shim | lower in [ 'true', '1', 'yes', 'y' ] -%}
+	{% if cookiecutter.create_shim is truthy -%}
 	shimprovider "{{ cookiecutter.terraform_provider_source }}/shim"
 	{% else -%}
 	"{{ cookiecutter.terraform_provider_source }}/{{ cookiecutter.terraform_provider_package_name }}"
@@ -50,7 +50,7 @@ func preConfigureCallback(vars resource.PropertyMap, c shim.ResourceConfig) erro
 // Provider returns additional overlaid schema and metadata associated with the provider..
 func Provider() tfbridge.ProviderInfo {
 	// Instantiate the Terraform provider
-	{% if cookiecutter.create_shim | lower in [ 'true', '1', 'yes', 'y' ] -%}
+	{% if cookiecutter.create_shim is truthy -%}
 	p := shimv2.NewProvider(shimprovider.NewProvider())
 	{% else -%}
 	p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
