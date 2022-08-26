@@ -23,10 +23,10 @@ import (
 	shimv2 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v2"
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
-	{% if cookiecutter.create_shim is truthy -%}
+	{% if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
 	shimprovider "{{ cookiecutter.terraform_provider_source }}/shim"
 	{% else -%}
-	"{{ cookiecutter.terraform_provider_source }}/{{ cookiecutter.terraform_provider_package_name }}"
+	"{{ cookiecutter.terraform_provider_module }}/{{ cookiecutter.terraform_provider_package_name }}"
 	{%- endif %}
 )
 
@@ -50,7 +50,7 @@ func preConfigureCallback(vars resource.PropertyMap, c shim.ResourceConfig) erro
 // Provider returns additional overlaid schema and metadata associated with the provider..
 func Provider() tfbridge.ProviderInfo {
 	// Instantiate the Terraform provider
-	{% if cookiecutter.create_shim is truthy -%}
+	{% if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
 	p := shimv2.NewProvider(shimprovider.NewProvider())
 	{% else -%}
 	p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
@@ -73,16 +73,20 @@ func Provider() tfbridge.ProviderInfo {
 		//
 		// You may host a logo on a domain you control or add an SVG logo for your package
 		// in your repository and use the raw content URL for that file as your logo URL.
-		LogoURL: "",
+		LogoURL: "{{ cookiecutter.provider_logoUrl }}",
 		// PluginDownloadURL is an optional URL used to download the Provider
 		// for use in Pulumi programs
 		// e.g https://github.com/org/pulumi-provider-name/releases/
-		PluginDownloadURL: "",
-		Description:       "A Pulumi package for creating and managing {{ cookiecutter.terraform_provider_name }} cloud resources.",
+		PluginDownloadURL: "{{ cookiecutter.provider_download_url }}",
+		Description:       "{{ cookiecutter.provider_description }}",
 		// category/cloud tag helps with categorizing the package in the Pulumi Registry.
 		// For all available categories, see `Keywords` in
 		// https://www.pulumi.com/docs/guides/pulumi-packages/schema/#package.
-		Keywords:   []string{"pulumi", "{{ cookiecutter.terraform_provider_name }}", "category/cloud"},
+		Keywords:   []string{
+			"pulumi",
+			"{{ cookiecutter.terraform_provider_name }}",
+			"category/{{ cookiecutter.provider_category }}",
+		},
 		License:    "Apache-2.0",
 		Homepage:   "{{ cookiecutter.provider_homepage }}",
 		Repository: "https://github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}",
