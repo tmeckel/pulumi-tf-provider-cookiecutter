@@ -5,7 +5,7 @@ before:
   hooks:
     - make tfgen
 builds:
-  - binary: pulumi-resource-xyz
+  - binary: pulumi-resource-{{ cookiecutter.terraform_provider_name }}
     dir: provider
     env:
       - CGO_ENABLED=0
