@@ -1,6 +1,8 @@
 import os
 import shutil
 import re
+import requests
+from dateutil import parser as dateparser
 
 from subprocess import Popen
 
@@ -46,13 +48,79 @@ def go_mod_tidy(folder):
 
 
 def go_mod_add_provider(folder):
+    path = os.path.join(PROJECT_DIRECTORY, folder)
     version = "{{ cookiecutter.terraform_provider_version_or_commit }}"
+    is_version = False
     if re.match(r"^([0-9]+)(\.[0-9]+)?(\.[0-9]+)?$", version):
         version = "v%s" % version
+        is_version = True
+
+    provider_module = "{{ cookiecutter.terraform_provider_module }}"
+    versionless_provider_module = provider_module
+    idx = provider_module.rfind("/v")
+    if idx > -1:
+        versionless_provider_module = provider_module[:idx]
+
     provider_source = "{{ cookiecutter.terraform_provider_source }}@%s" % version
-    go = Popen(
-        ["go", "get", provider_source], cwd=os.path.join(PROJECT_DIRECTORY, folder)
-    )
+    if versionless_provider_module != "{{ cookiecutter.terraform_provider_source }}":
+        if is_version:
+            go = Popen(
+                [
+                    "go",
+                    "mod",
+                    "edit",
+                    "-replace=%s=%s" % provider_module,
+                    provider_source,
+                ],
+                cwd=path,
+            )
+            go.wait()
+        else:
+            provider_source = "{{ cookiecutter.terraform_provider_source }}"
+            provider_source_elements = provider_source.split("/")
+            if len(provider_source_elements) < 3:
+                raise ValueError(
+                    "terraform_provider_source [%s] has an invalid format"
+                    % provider_source
+                )
+
+            if provider_source_elements[0].lower() != "github.com":
+                raise ValueError(
+                    "Only providers hosted on GitHub are currently supported while a Go replace is required"
+                )
+
+            api_url = "https://api.github.com/repos/%s/%s/commits/%s" % (
+                provider_source_elements[1],
+                provider_source_elements[2],
+                version,
+            )
+            resp = requests.get(
+                url=api_url, headers={"Accept": "application/vnd.github+json"}
+            )
+
+            if not resp.ok:
+                resp.raise_for_status()
+
+            json = resp.json()
+            commit_date = dateparser.isoparse(json["commit"]["committer"]["date"])
+            pseudo_version = "v0.0.0-%s-%s" % (
+                commit_date.strftime("%Y%m%d%H%M%S"),
+                json["sha"][:12],
+            )
+            provider_source = "%s@%s" % (provider_source, pseudo_version)
+            go = Popen(
+                [
+                    "go",
+                    "mod",
+                    "edit",
+                    "-replace=%s=%s" % (provider_module, provider_source),
+                ],
+                cwd=path,
+            )
+            go.wait()
+            provider_source = "%s@%s" % (provider_module, pseudo_version)
+
+    go = Popen(["go", "get", provider_source], cwd=path)
     go.wait()
 
 
