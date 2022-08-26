@@ -47,7 +47,7 @@ def go_mod_tidy(folder):
         go.wait()
 
 
-def go_mod_add_provider(folder):
+def go_mod_add_provider(folder, is_shim=False):
     path = os.path.join(PROJECT_DIRECTORY, folder)
     version = "{{ cookiecutter.terraform_provider_version_or_commit }}"
     is_version = False
@@ -74,6 +74,15 @@ def go_mod_add_provider(folder):
                 cwd=path,
             )
             go.wait()
+
+            if is_shim:
+                go = Popen(
+                    ["go", "mod", "edit", "-module", "%s/shim" % versionless_provider_module],
+                    cwd=path,
+                )
+                go.wait()
+
+            provider_source = "%s@%s" % (versionless_provider_module, version)
         else:
             provider_source = "{{ cookiecutter.terraform_provider_source }}"
             provider_source_elements = provider_source.split("/")
@@ -117,6 +126,14 @@ def go_mod_add_provider(folder):
                 cwd=path,
             )
             go.wait()
+
+            if is_shim:
+                go = Popen(
+                    ["go", "mod", "edit", "-module", "%s/shim" % versionless_provider_module],
+                    cwd=path,
+                )
+                go.wait()
+
             provider_source = "%s@%s" % (provider_module, pseudo_version)
 
     go = Popen(["go", "get", provider_source], cwd=path)
@@ -125,7 +142,7 @@ def go_mod_add_provider(folder):
 
 if "{{ cookiecutter.terraform_provider_package_name }}".startswith("internal"):
     path = os.path.join("provider", "shim")
-    go_mod_add_provider(path)
+    go_mod_add_provider(path, True)
     go_mod_tidy(path)
 else:
     go_mod_add_provider("provider")
