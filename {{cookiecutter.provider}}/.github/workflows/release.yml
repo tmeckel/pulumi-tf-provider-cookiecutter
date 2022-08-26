@@ -7,8 +7,7 @@ on:
 # New way of setting Github token permissions instead of a Personal Access Token
 # Source: https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/
 permissions:
-  contents: read
-  packages: write # Allow this workflow to write to releases & packages
+  contents: write
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
