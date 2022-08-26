@@ -1,5 +1,7 @@
 import os
 import shutil
+import re
+
 from subprocess import Popen
 
 # Get the root project directory
@@ -10,15 +12,17 @@ def init_git():
     """
     Initialises git on the new project folder
     """
-    GIT_COMMANDS = [
-        ["git", "init"],
-        ["git", "add", "."],
-        ["git", "commit", "-a", "-m", "Initial Commit."],
-    ]
 
-    for command in GIT_COMMANDS:
-        git = Popen(command, cwd=PROJECT_DIRECTORY)
-        git.wait()
+    if not os.path.exists(".git"):
+        GIT_COMMANDS = [
+            ["git", "init"],
+            ["git", "add", "."],
+            ["git", "commit", "-a", "-m", "Initial Commit."],
+        ]
+
+        for command in GIT_COMMANDS:
+            git = Popen(command, cwd=PROJECT_DIRECTORY)
+            git.wait()
 
 
 def remove_shim():
@@ -41,11 +45,26 @@ def go_mod_tidy(folder):
         go.wait()
 
 
-go_mod_tidy("provider")
-if "{{ cookiecutter.create_shim }}".lower() in ["true", "1", "yes", "y"]:
-    go_mod_tidy(os.path.join("provider", "shim"))
+def go_mod_add_provider(folder):
+    version = "{{ cookiecutter.terraform_provider_version_or_commit }}"
+    if re.match(r"^([0-9]+)(\.[0-9]+)?(\.[0-9]+)?$", version):
+        version = "v%s" % version
+    provider_source = "{{ cookiecutter.terraform_provider_source }}@%s" % version
+    go = Popen(
+        ["go", "get", provider_source], cwd=os.path.join(PROJECT_DIRECTORY, folder)
+    )
+    go.wait()
+
+
+if "{{ cookiecutter.terraform_provider_package_name }}".startswith("internal"):
+    path = os.path.join("provider", "shim")
+    go_mod_add_provider(path)
+    go_mod_tidy(path)
 else:
+    go_mod_add_provider("provider")
     remove_shim()
+
+go_mod_tidy("provider")
 
 if "{{ cookiecutter.create_github_workflows }}".lower() not in [
     "true",
