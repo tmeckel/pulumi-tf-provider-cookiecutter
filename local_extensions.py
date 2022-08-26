@@ -14,6 +14,9 @@ def capitalize(v):
 def go_module_version(v):
     if not v:
         raise ValueError("Value is empty")
+    if re.match("[0-9a-f]{40}", v):
+        return ""
+
     if v.lower().startswith("v"):
         v = v[1:]
     version = v.split(".")
