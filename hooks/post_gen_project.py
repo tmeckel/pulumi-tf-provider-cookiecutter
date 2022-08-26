@@ -69,8 +69,7 @@ def go_mod_add_provider(folder):
                     "go",
                     "mod",
                     "edit",
-                    "-replace=%s=%s" % provider_module,
-                    provider_source,
+                    "-replace=%s=%s" % (provider_module, provider_source),
                 ],
                 cwd=path,
             )
