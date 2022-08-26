@@ -15,9 +15,6 @@ TESTPARALLELISM  := 4
 
 WORKING_DIR      := $(shell pwd)
 
-OS := $(shell uname)
-EMPTY_TO_AVOID_SED := ""
-
 .PHONY: development provider build_sdks build_nodejs build_dotnet build_go build_python cleanup
 
 development:: install_plugins provider lint_provider build_sdks install_sdks cleanup # Build the provider & SDKs for a development environment
