@@ -7,7 +7,7 @@ from dateutil import parser as dateparser
 
 from subprocess import Popen
 
-sys.path.append("{{ cookiecutter._template }}")
+sys.path.append("{{ cookiecutter._repo_dir }}")
 
 from utils.version import Version
 
@@ -58,7 +58,7 @@ def go_mod_tidy(folder):
 
 def go_mod_add_provider(folder, is_shim=False):
     path = os.path.join(PROJECT_DIRECTORY, folder)
-    version = "{{ cookiecutter.terraform_provider_version_or_commit }}"
+    version = "{{ cookiecutter.terraform_provider_version_or_commit | trim }}"
     is_version = False
     if Version.isvalid(version):
         version = "v%s" % version
