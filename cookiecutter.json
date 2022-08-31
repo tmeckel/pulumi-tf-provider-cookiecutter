@@ -14,7 +14,15 @@
     "provider_homepage": "https://github.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}",
     "provider_logoUrl": "",
     "provider_description": "A Pulumi package for creating and managing {{ cookiecutter.terraform_provider_name | capitalize }} resources",
-    "provider_category": "",
+    "provider_category": [
+        "cloud",
+        "database",
+        "infrastructure",
+        "monitoring",
+        "network",
+        "utility",
+        "versioncontrol"
+    ],
     "provider_download_url": "github://api.github.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}",
     "provider_javascript_package": "@pulumiverse/{{ cookiecutter.terraform_provider_name }}",
     "provider_dotnet_rootnamespace": "Pulumiverse",
