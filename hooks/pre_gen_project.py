@@ -1,10 +1,6 @@
 import re
 import sys
 
-sys.path.append("{{ cookiecutter._template }}")
-
-from utils.version import Version
-
 def _error_exit(msg):
     # exits with status 1 to indicate failure
     sys.stderr.write("ERROR: %s\n" % msg)
@@ -19,9 +15,9 @@ if not re.match(PROVIDER_NAME_REGEX, provider_name):
     _error_exit("%s IS NOT a valid terraform provider name!" % provider_name)
 
 
-SHA_COMMIT_REGEX = r"^([0-9]+)(\.[0-9]+)?(\.[0-9]+)?$|[0-9a-f]{40}"
+VERSION_SHA_COMMIT_REGEX = r"^([0-9]+)(\.[0-9]+)?(\.[0-9]+)?$|[0-9a-f]{40}"
 terraform_provider_version = "{{ cookiecutter.terraform_provider_version_or_commit }}"
-if not Version.isvalid(terraform_provider_version) and not re.match(SHA_COMMIT_REGEX, terraform_provider_version):
+if not re.match(VERSION_SHA_COMMIT_REGEX, terraform_provider_version):
     _error_exit(
         "%s IS NOT a valid version! Eiter a semver compatible version 0.0.0 or a commit hash must be specified."
         % terraform_provider_version

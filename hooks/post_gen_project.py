@@ -1,15 +1,12 @@
 import os
 import requests
+import re
 import shutil
 import sys
 
 from dateutil import parser as dateparser
 
 from subprocess import Popen
-
-sys.path.append("{{ cookiecutter._template }}")
-
-from utils.version import Version
 
 # Get the root project directory
 PROJECT_DIRECTORY = os.path.realpath(os.path.curdir)
@@ -60,7 +57,7 @@ def go_mod_add_provider(folder, is_shim=False):
     path = os.path.join(PROJECT_DIRECTORY, folder)
     version = "{{ cookiecutter.terraform_provider_version_or_commit }}"
     is_version = False
-    if Version.isvalid(version):
+    if re.match(r"^([0-9]+)(\.[0-9]+)?(\.[0-9]+)?", version):
         version = "v%s" % version
         is_version = True
 
