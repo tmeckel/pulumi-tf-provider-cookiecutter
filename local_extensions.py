@@ -1,6 +1,7 @@
+import re
+
 from jinja2.environment import Environment
 from jinja2.ext import Extension
-import re
 
 
 def is_truthy(v):
