@@ -1,14 +1,23 @@
 import os
-import shutil
-import re
 import requests
+import shutil
+import sys
+
 from dateutil import parser as dateparser
 
 from subprocess import Popen
 
+sys.path.append("{{ cookiecutter._template }}")
+
+from utils.version import Version
+
 # Get the root project directory
 PROJECT_DIRECTORY = os.path.realpath(os.path.curdir)
 
+def _error_exit(msg):
+    # exits with status 1 to indicate failure
+    sys.stderr.write("ERROR: %s\n" % msg)
+    sys.exit(1)
 
 def init_git():
     """
@@ -51,7 +60,7 @@ def go_mod_add_provider(folder, is_shim=False):
     path = os.path.join(PROJECT_DIRECTORY, folder)
     version = "{{ cookiecutter.terraform_provider_version_or_commit }}"
     is_version = False
-    if re.match(r"^([0-9]+)(\.[0-9]+)?(\.[0-9]+)?$", version):
+    if Version.isvalid(version):
         version = "v%s" % version
         is_version = True
 
