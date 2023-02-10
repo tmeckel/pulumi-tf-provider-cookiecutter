@@ -1,2 +1,5 @@
 black
 cookiecutter
+isort
+pylint
+pre-commit
