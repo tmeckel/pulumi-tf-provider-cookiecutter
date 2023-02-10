@@ -1,6 +1,7 @@
 import re
 import sys
 
+
 def _error_exit(msg):
     # exits with status 1 to indicate failure
     sys.stderr.write("ERROR: %s\n" % msg)
@@ -35,15 +36,10 @@ VALID_CATEGORIES = [
 if not "{{ cookiecutter.provider_category }}" in VALID_CATEGORIES:
     _error_exit(f"provider_category MUST BE one of {VALID_CATEGORIES}")
 
-SDK_VERSION_REGEX = r"^\s*[12]\s*$"
+SDK_VERSION_REGEX = r"^\s*([2]|plugin-framework)\s*$"
 terraform_sdk_version = "{{cookiecutter.terraform_sdk_version | trim }}"
 if not re.match(SDK_VERSION_REGEX, terraform_sdk_version):
     _error_exit(
-        "%s IS NOT a valid Terrafom SDK version! Only 1 or 2 are allowed as values"
+        "%s IS NOT a valid Terrafom SDK version! Only 2 or plugin-framework are allowed as values"
         % terraform_sdk_version
-    )
-
-if int(terraform_sdk_version) != 2:
-    _error_exit(
-        f"Currently only Terraform providers using Terraform SDK V2 are supported"
     )
