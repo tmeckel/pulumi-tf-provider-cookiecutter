@@ -1,0 +1,32 @@
+---
+repos:
+  - repo: 'https://github.com/pre-commit/pre-commit-hooks'
+    rev: 'v4.4.0'
+    hooks:
+      - id: 'check-added-large-files'
+      - id: 'fix-byte-order-marker'
+      - id: 'check-case-conflict'
+      - id: 'check-json'
+        exclude: '^\.vscode/'
+      - id: 'end-of-file-fixer'
+      - id: 'trailing-whitespace'
+        exclude: '\.md$'
+      - id: 'mixed-line-ending'
+      - id: 'check-merge-conflict'
+
+  - repo: 'https://github.com/adrienverge/yamllint.git'
+    rev: 'v1.29.0'
+    hooks:
+      - id: 'yamllint'
+        exclude: 'azure-pipelines.yml'
+
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: isort (python)
