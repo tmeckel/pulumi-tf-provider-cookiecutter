@@ -1,31 +1,95 @@
+import logging
 import os
-import requests
 import re
 import shutil
 import sys
+from subprocess import Popen
 
+import requests
 from dateutil import parser as dateparser
 
-from subprocess import Popen
+_logger = logging.getLogger(__name__)
 
 # Get the root project directory
 PROJECT_DIRECTORY = os.path.realpath(os.path.curdir)
+
 
 def _error_exit(msg):
     # exits with status 1 to indicate failure
     sys.stderr.write("ERROR: %s\n" % msg)
     sys.exit(1)
 
+
+def _get_commit_url_from_tag(tags_url):
+    while True:
+        _logger.error("Getting tag information from %s", tags_url)
+
+        resp = requests.get(
+            url=tags_url,
+            headers={"Accept": "application/vnd.github+json"},
+        )
+
+        if not resp.ok:
+            resp.raise_for_status()
+
+        json = resp.json()
+        tags_url = json["object"]["url"]
+        if json["object"]["type"] == "commit":
+            return tags_url
+
+
+def _get_go_pseudo_version(commit_url):
+    _logger.error("Getting commit information from %s", commit_url)
+
+    resp = requests.get(
+        url=commit_url,
+        headers={"Accept": "application/vnd.github+json"},
+    )
+
+    if not resp.ok:
+        resp.raise_for_status()
+
+    json = resp.json()
+
+    try:
+        if "commit" in json:
+            commit_date = dateparser.isoparse(json["commit"]["committer"]["date"])
+        else:
+            commit_date = dateparser.isoparse(json["committer"]["date"])
+    except KeyError:
+        _logger.exception("%s", json)
+        raise
+
+    return "v0.0.0-%s-%s" % (
+        commit_date.strftime("%Y%m%d%H%M%S"),
+        json["sha"][:12],
+    )
+
+
+def _split_provider_source(provider_source):
+    provider_source_elements = provider_source.split("/")
+    if len(provider_source_elements) < 3:
+        raise ValueError(
+            "terraform_provider_source [%s] has an invalid format" % provider_source
+        )
+
+    if provider_source_elements[0].lower() != "github.com":
+        raise ValueError(
+            "Only providers hosted on GitHub are currently supported while a Go replace is required"
+        )
+
+    return provider_source_elements
+
+
 def init_git():
     """
-    Initialises git on the new project folder
+    Initializes git on the new project folder
     """
 
     if not os.path.exists(".git"):
         GIT_COMMANDS = [
             ["git", "init"],
-            ["git", "add", "."],
-            ["git", "commit", "-a", "-m", "Initial Commit."],
+            ["git", "commit", "--allow-empty", "-m", "Initial Commit."],
         ]
 
         for command in GIT_COMMANDS:
@@ -42,107 +106,151 @@ def remove_shim():
 
 def remove_github_workflows():
     """
-    Removes the .github/worklfows directory if a GitHub worklfows are not required
+    Removes the .github/workflows directory if a GitHub workflows are not required
     """
-    shutil.rmtree(os.path.join(PROJECT_DIRECTORY, ".github", "worklfows"))
+    shutil.rmtree(os.path.join(PROJECT_DIRECTORY, ".github", "workflows"))
 
 
 def go_mod_tidy(folder):
-    if "{{ cookiecutter.skip_go_mod_tidy }}".lower() not in ["true", "1", "yes", "y"]:
+    if "{{ cookiecutter.skip_go_mod_tidy}}".lower().strip() not in [
+        "true",
+        "1",
+        "yes",
+        "y",
+    ]:
         go = Popen(["go", "mod", "tidy"], cwd=os.path.join(PROJECT_DIRECTORY, folder))
         go.wait()
 
 
 def go_mod_add_provider(folder, is_shim=False):
     path = os.path.join(PROJECT_DIRECTORY, folder)
-    version = "{{ cookiecutter.terraform_provider_version_or_commit }}"
-    is_version = False
-    if re.match(r"^([0-9]+)(\.[0-9]+)?(\.[0-9]+)?", version):
+
+    version = "{{ cookiecutter.terraform_provider_version_or_commit }}".strip()
+    major_version = None
+    match = re.match(r"^([0-9]+)(\.[0-9]+)?(\.[0-9]+)?$", version)
+    if match:
         version = "v%s" % version
-        is_version = True
+        major_version = match.group(1)
 
-    provider_module = "{{ cookiecutter.terraform_provider_module }}"
+    provider_source = "{{ cookiecutter.terraform_provider_source }}".strip()
+    provider_module = "{{ cookiecutter.terraform_provider_module }}".strip()
+    provider_module_version = None
     versionless_provider_module = provider_module
-    idx = provider_module.rfind("/v")
-    if idx > -1:
-        versionless_provider_module = provider_module[:idx]
 
-    provider_source = "{{ cookiecutter.terraform_provider_source }}@%s" % version
-    if versionless_provider_module != "{{ cookiecutter.terraform_provider_source }}":
-        if is_version:
-            go = Popen(
-                [
-                    "go",
-                    "mod",
-                    "edit",
-                    "-replace=%s=%s" % (provider_module, provider_source),
-                ],
-                cwd=path,
-            )
-            go.wait()
+    provider_module_parts = provider_module.split("/v")
+    if len(provider_module_parts) > 1:
+        versionless_provider_module = provider_module_parts[0]
+        provider_module_version = provider_module_parts[1]
 
-            if is_shim:
-                go = Popen(
-                    ["go", "mod", "edit", "-module", "%s/shim" % versionless_provider_module],
-                    cwd=path,
+    if not provider_source.startswith(versionless_provider_module):
+        _logger.error(
+            "Provider module %s diverges from provider source %s",
+            provider_module,
+            provider_source,
+        )
+
+        pseudo_version = None
+        if major_version:
+            if not provider_module_version and major_version and int(major_version) > 1:
+                _logger.error(
+                    "Using a versionless module %s with version %s, converting to pseudo-version",
+                    versionless_provider_module,
+                    version,
                 )
-                go.wait()
 
-            provider_source = "%s@%s" % (versionless_provider_module, version)
+                provider_source_elements = _split_provider_source(provider_source)
+
+                tags_url = "https://api.github.com/repos/%s/%s/git/refs/tags/%s" % (
+                    provider_source_elements[1],
+                    provider_source_elements[2],
+                    version,
+                )
+                pseudo_version = _get_go_pseudo_version(
+                    _get_commit_url_from_tag(tags_url)
+                )
+
         else:
-            provider_source = "{{ cookiecutter.terraform_provider_source }}"
-            provider_source_elements = provider_source.split("/")
-            if len(provider_source_elements) < 3:
-                raise ValueError(
-                    "terraform_provider_source [%s] has an invalid format"
-                    % provider_source
-                )
+            _logger.error(
+                "Using a versioned module %s with a commit reference %s, creating pseudo-version",
+                provider_module,
+                version,
+            )
 
-            if provider_source_elements[0].lower() != "github.com":
-                raise ValueError(
-                    "Only providers hosted on GitHub are currently supported while a Go replace is required"
-                )
+            provider_source_elements = _split_provider_source(provider_source)
 
-            api_url = "https://api.github.com/repos/%s/%s/commits/%s" % (
+            commit_url = "https://api.github.com/repos/%s/%s/commits/%s" % (
                 provider_source_elements[1],
                 provider_source_elements[2],
                 version,
             )
-            resp = requests.get(
-                url=api_url, headers={"Accept": "application/vnd.github+json"}
-            )
+            pseudo_version = _get_go_pseudo_version(commit_url)
 
-            if not resp.ok:
-                resp.raise_for_status()
+        provider_module_version_ref = "%s@%s" % (
+            provider_module,
+            pseudo_version if pseudo_version else version,
+        )
+        provider_source_version_ref = "%s@%s" % (
+            provider_source,
+            pseudo_version if pseudo_version else version,
+        )
 
-            json = resp.json()
-            commit_date = dateparser.isoparse(json["commit"]["committer"]["date"])
-            pseudo_version = "v0.0.0-%s-%s" % (
-                commit_date.strftime("%Y%m%d%H%M%S"),
-                json["sha"][:12],
-            )
-            provider_source = "%s@%s" % (provider_source, pseudo_version)
-            go = Popen(
-                [
-                    "go",
-                    "mod",
-                    "edit",
-                    "-replace=%s=%s" % (provider_module, provider_source),
-                ],
-                cwd=path,
-            )
-            go.wait()
+        go = Popen(
+            [
+                "go",
+                "mod",
+                "edit",
+                "-replace=%s=%s" % (provider_module, provider_source_version_ref),
+            ],
+            cwd=path,
+        )
+        go.wait()
 
-            if is_shim:
-                go = Popen(
-                    ["go", "mod", "edit", "-module", "%s/shim" % versionless_provider_module],
-                    cwd=path,
+    else:
+        if not provider_module_version and major_version and int(major_version) > 1:
+            provider_source_elements = _split_provider_source(provider_source)
+
+            if major_version and int(major_version) > 1:
+                _logger.error(
+                    "Using a versionless provider module %s with a version reference %s; converting to pseudo-version",
+                    provider_source,
+                    version,
                 )
-                go.wait()
 
-            provider_source = "%s@%s" % (provider_module, pseudo_version)
+                tags_url = "https://api.github.com/repos/%s/%s/git/refs/tags/%s" % (
+                    provider_source_elements[1],
+                    provider_source_elements[2],
+                    version,
+                )
+                pseudo_version = _get_go_pseudo_version(
+                    _get_commit_url_from_tag(tags_url)
+                )
 
-    go = Popen(["go", "get", provider_source], cwd=path)
+            else:
+                _logger.error(
+                    "Using a versionless provider module %s with a commit reference %s; converting to pseudo-version",
+                    provider_source,
+                    version,
+                )
+
+                commit_url = "https://api.github.com/repos/%s/%s/commits/%s" % (
+                    provider_source_elements[1],
+                    provider_source_elements[2],
+                    version,
+                )
+                pseudo_version = _get_go_pseudo_version(commit_url)
+
+            provider_module_version_ref = "%s@%s" % (provider_module, pseudo_version)
+        else:
+            provider_module_version_ref = "%s@%s" % (provider_module, version)
+
+    if is_shim:
+        go = Popen(
+            ["go", "mod", "edit", "-module", "%s/shim" % provider_module],
+            cwd=path,
+        )
+        go.wait()
+
+    go = Popen(["go", "mod", "edit", "-require", provider_module_version_ref], cwd=path)
     go.wait()
 
 
