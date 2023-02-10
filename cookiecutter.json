@@ -5,7 +5,10 @@
     "terraform_provider_version_or_commit": "0.0.0",
     "terraform_provider_module": "github.com/{{ cookiecutter.terraform_provider_org }}/terraform-provider-{{ cookiecutter.terraform_provider_name }}{{ cookiecutter.terraform_provider_version_or_commit | go_module_version }}",
     "terraform_provider_package_name": "{{ cookiecutter.terraform_provider_name }}",
-    "terraform_sdk_version": "2",
+    "terraform_sdk_version": [
+        "2",
+        "plugin-framework"
+    ],
 
     "provider": "pulumi-{{ cookiecutter.terraform_provider_name }}",
     "provider_display_name": "{{ cookiecutter.terraform_provider_name | capitalize }}",
