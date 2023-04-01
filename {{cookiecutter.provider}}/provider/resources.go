@@ -108,6 +108,7 @@ func Provider() pf.ProviderInfo {
 		Repository: "https://github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}",
 		// The GitHub Org for the provider - defaults to `terraform-providers`. Note that this
 		// should match the TF provider module's require directive, not any replace directives.
+		Version:   version.Version,
 		GitHubOrg: "{{ cookiecutter.terraform_provider_org }}",
 		Config:    map[string]*tfbridge.SchemaInfo{
 			// Add any required configuration here, or remove the example below if
