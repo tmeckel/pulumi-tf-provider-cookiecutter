@@ -22,7 +22,7 @@ import (
 	{% endif -%}
 	_ "embed"
 
-	{% if cookiecutter.terraform_sdk_version == "2" -%}
+	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 	{% else %}
@@ -40,7 +40,7 @@ var bridgeMetadata []byte
 {% endif %}
 
 func main() {
-	{% if cookiecutter.terraform_sdk_version == "2" -%}
+	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
 	tfbridge.Main("{{ cookiecutter.terraform_provider_name }}", version.Version, {{ cookiecutter.terraform_provider_name }}.Provider(), pulumiSchema)
 	{% else -%}
 	meta := tfbridge.ProviderMetadata{PackageSchema: pulumiSchema, BridgeMetadata: bridgeMetadata}

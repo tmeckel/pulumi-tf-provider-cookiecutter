@@ -1,8 +1,12 @@
 package shim
 
-{% if cookiecutter.terraform_sdk_version == "2" -%}
+{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
 import (
+	{% if cookiecutter.terraform_sdk_version == "1" -%}
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	{% else -%}
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	{% endif %}
 	"{{ cookiecutter.terraform_provider_module }}/{{ cookiecutter.terraform_provider_package_name }}"
 )
 

@@ -36,7 +36,7 @@ VALID_CATEGORIES = [
 if not "{{ cookiecutter.provider_category }}" in VALID_CATEGORIES:
     _error_exit(f"provider_category MUST BE one of {VALID_CATEGORIES}")
 
-SDK_VERSION_REGEX = r"^\s*([2]|plugin-framework)\s*$"
+SDK_VERSION_REGEX = r"^\s*([12]|plugin-framework)\s*$"
 terraform_sdk_version = "{{cookiecutter.terraform_sdk_version | trim }}"
 if not re.match(SDK_VERSION_REGEX, terraform_sdk_version):
     _error_exit(
