@@ -5,7 +5,7 @@ TF_NAME          := {{ cookiecutter.terraform_provider_name }}
 PROVIDER_PATH    := provider
 VERSION_PATH     := ${PROVIDER_PATH}/pkg/version.Version
 
-JAVA_GEN 		 := pulumi-java-gen
+JAVA_GEN         := pulumi-java-gen
 JAVA_GEN_VERSION := v0.5.0
 TFGEN            := pulumi-tfgen-{{ cookiecutter.terraform_provider_name }}
 PROVIDER         := pulumi-resource-{{ cookiecutter.terraform_provider_name }}
