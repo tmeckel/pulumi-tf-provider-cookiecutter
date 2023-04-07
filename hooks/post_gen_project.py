@@ -88,7 +88,7 @@ def init_git():
 
     if not os.path.exists(".git"):
         GIT_COMMANDS = [
-            ["git", "init"],
+            ["git", "init", "-b", "main"],
             ["git", "commit", "--allow-empty", "-m", "Initial Commit."],
         ]
 
@@ -108,7 +108,10 @@ def remove_github_workflows():
     """
     Removes the .github/workflows directory if a GitHub workflows are not required
     """
-    shutil.rmtree(os.path.join(PROJECT_DIRECTORY, ".github", "workflows"))
+    github_dir = os.path.join(PROJECT_DIRECTORY, ".github")
+    shutil.rmtree(os.path.join(github_dir, "workflows"))
+    if len(os.listdir(github_dir)) == 0:
+        shutil.rmtree(github_dir)
 
 
 def go_mod_tidy(folder):
