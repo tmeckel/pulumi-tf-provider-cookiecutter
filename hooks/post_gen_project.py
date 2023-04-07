@@ -275,4 +275,10 @@ if "{{ cookiecutter.create_github_workflows }}".lower() not in [
 if "{{ cookiecutter.provider_github_organization }}".lower() == "pulumiverse":
     os.remove(os.path.join(PROJECT_DIRECTORY, "CODE-OF-CONDUCT.md"))
 
-init_git()
+if "{{ cookiecutter.skip_git_init }}".lower() not in [
+    "true",
+    "1",
+    "yes",
+    "y",
+]:
+    init_git()

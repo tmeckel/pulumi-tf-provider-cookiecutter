@@ -35,6 +35,7 @@
 
     "create_github_workflows": "yes",
     "skip_go_mod_tidy": "no",
+    "skip_git_init": "no",
 
     "_copy_without_render": [
         ".github/workflows/release.yml"
