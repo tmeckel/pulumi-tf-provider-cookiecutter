@@ -16,7 +16,7 @@
     "provider_github_organization": "pulumiverse",
     "provider_publisher": "{{ cookiecutter.provider_github_organization }}",
     "provider_homepage": "https://github.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}",
-    "provider_logoUrl": "",
+    "provider_logoUrl": "https://raw.githubusercontent.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}/main/docs/{{ cookiecutter.terraform_provider_name }}.svg",
     "provider_description": "A Pulumi package for creating and managing {{ cookiecutter.terraform_provider_name | capitalize }} resources",
     "provider_category": [
         "cloud",
