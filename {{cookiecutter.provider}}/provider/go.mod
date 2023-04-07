@@ -22,5 +22,5 @@ require (
 	github.com/pulumi/pulumi-terraform-bridge/pf v0.7.0
 	{% endif -%}
 	github.com/pulumi/pulumi-terraform-bridge/v3 v3.43.0
-	github.com/pulumi/pulumi/sdk/v3 v3.36.0
+	github.com/pulumi/pulumi/sdk/v3 v3.38.0
 )
