@@ -15,9 +15,16 @@
 package {{ cookiecutter.terraform_provider_name }}
 
 import (
+	{% if cookiecutter.terraform_sdk_version == "plugin-framework" -%}
+	_ "embed"
+{%- endif %}
 	"fmt"
 	"path/filepath"
+	"strings"
 
+	"github.com/ettle/strcase"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
 {%- if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
@@ -40,14 +47,33 @@ import (
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 )
 
+{% if cookiecutter.terraform_sdk_version == "plugin-framework" -%}
+//go:embed cmd/pulumi-resource-{{ cookiecutter.terraform_provider_name }}/bridge-metadata.json
+var bridgeMetadata []byte
+{% endif %}
+
 // all of the token components used below.
 const (
 	// This variable controls the default name of the package in the package
-	// registries for nodejs and python:
-	mainPkg = "{{ cookiecutter.terraform_provider_name }}"
-	// modules:
 	mainMod = "index" // the {{ cookiecutter.terraform_provider_name }} module
 )
+
+func convertName(name string) string {
+	idx := strings.Index(name, "_")
+	contract.Assertf(idx > 0 && idx < len(name)-1, "Invalid snake case name %s", name)
+	name = name[idx+1:]
+	contract.Assertf(len(name) > 0, "Invalid snake case name %s", name)
+	return strcase.ToPascal(name)
+}
+
+func makeDataSource(mod string, name string) tokens.ModuleMember {
+	name = convertName(name)
+	return tfbridge.MakeDataSource("{{ cookiecutter.terraform_provider_name }}", mod, "get"+name)
+}
+
+func makeResource(mod string, res string) tokens.Type {
+	return tfbridge.MakeResource("{{ cookiecutter.terraform_provider_name }}", mod, convertName(res))
+}
 
 {% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
 // preConfigureCallback is called before the providerConfigure function of the underlying provider.
@@ -122,6 +148,9 @@ func Provider() pf.ProviderInfo {
 		// should match the TF provider module's require directive, not any replace directives.
 		Version:   version.Version,
 		GitHubOrg: "{{ cookiecutter.terraform_provider_org }}",
+		{% if cookiecutter.terraform_sdk_version == "plugin-framework" -%}
+		MetadataInfo: tfbridge.NewProviderMetadata(bridgeMetadata),
+		{% endif -%}
 		Config:    map[string]*tfbridge.SchemaInfo{
 			// Add any required configuration here, or remove the example below if
 			// no additional points are required.
@@ -140,19 +169,19 @@ func Provider() pf.ProviderInfo {
 			// are below - the single line form is the common case. The multi-line form is
 			// needed only if you wish to override types or other default options.
 			//
-			// "aws_iam_role": {Tok: tfbridge.MakeResource(mainPkg, mainMod, "IamRole")}
+			// "aws_iam_role": {Tok: makeResource(mainMod(mainMod, "aws_iam_role")}
 			//
 			// "aws_acm_certificate": {
-			// 	Tok: tfbridge.MakeResource(mainPkg, mainMod, "Certificate"),
+			// 	Tok: Tok: makeResource(mainMod(mainMod, "aws_acm_certificate"),
 			// 	Fields: map[string]*tfbridge.SchemaInfo{
-			// 		"tags": {Type: tfbridge.MakeType(mainPkg, "Tags")},
+			// 		"tags": {Type: tfbridge.MakeType("{{ cookiecutter.terraform_provider_name }}", "Tags")},
 			// 	},
 			// },
 		},
 		DataSources: map[string]*tfbridge.DataSourceInfo{
 			// Map each resource in the Terraform provider to a Pulumi function. An example
 			// is below.
-			// "aws_ami": {Tok: tfbridge.MakeDataSource(mainPkg, mainMod, "getAmi")},
+			// "aws_ami": {Tok: makeDataSource(mainMod, "aws_ami")},
 		},
 		JavaScript: &tfbridge.JavaScriptInfo{
 			PackageName: "{{ cookiecutter.provider_javascript_package }}",
@@ -180,10 +209,10 @@ func Provider() pf.ProviderInfo {
 		},
 		Golang: &tfbridge.GolangInfo{
 			ImportBasePath: filepath.Join(
-				fmt.Sprintf("github.com/pulumi/pulumi-%[1]s/sdk/", mainPkg),
+				fmt.Sprintf("github.com/pulumi/pulumi-%[1]s/sdk/", "{{ cookiecutter.terraform_provider_name }}"),
 				tfbridge.GetModuleMajorVersion(version.Version),
 				"go",
-				mainPkg,
+				"{{ cookiecutter.terraform_provider_name }}",
 			),
 			GenerateResourceContainerTypes: true,
 		},
