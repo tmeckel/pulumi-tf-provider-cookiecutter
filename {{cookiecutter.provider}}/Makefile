@@ -6,7 +6,7 @@ PROVIDER_PATH    := provider
 VERSION_PATH     := ${PROVIDER_PATH}/pkg/version.Version
 
 JAVA_GEN         := pulumi-java-gen
-JAVA_GEN_VERSION := v0.5.0
+JAVA_GEN_VERSION := v0.9.1
 TFGEN            := pulumi-tfgen-{{ cookiecutter.terraform_provider_name }}
 PROVIDER         := pulumi-resource-{{ cookiecutter.terraform_provider_name }}
 VERSION          := $(shell pulumictl get version)
@@ -15,7 +15,27 @@ TESTPARALLELISM  := 4
 
 WORKING_DIR      := $(shell pwd)
 
-.PHONY: development provider build_sdks build_nodejs build_dotnet build_go build_python cleanup
+GO_MAJOR_VERSION := $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
+GO_MINOR_VERSION := $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
+####
+# Defines the required Go version. This is a safeguard, because
+# the (local) version must match the version specified in .github/workflows/release.yml
+# otherwise publkishing the Go SDK of the provider will fail
+REQUIRED_GO_MAJOR_VERSION := 1
+REQUIRED_GO_MINOR_VERSION := 19
+GO_VERSION_VALIDATION_ERR_MSG := Golang version $(REQUIRED_GO_MAJOR_VERSION).$(REQUIRED_GO_MINOR_VERSION) is required
+
+.PHONY: development provider build_sdks build_nodejs build_dotnet build_go build_python cleanup validate_go_version
+
+validate_go_version: ## Validates the installed version of go
+	@if [ $(GO_MAJOR_VERSION) -ne $(REQUIRED_GO_MAJOR_VERSION) ]; then \
+		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
+		exit 1 ;\
+	fi
+	@if [ $(GO_MINOR_VERSION) -ne $(REQUIRED_GO_MINOR_VERSION) ]; then \
+		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
+		exit 1 ;\
+	fi
 
 development:: install_plugins provider lint_provider build_sdks install_sdks cleanup # Build the provider & SDKs for a development environment
 
@@ -92,7 +112,7 @@ help::
 clean::
 	rm -rf sdk/{dotnet,nodejs,go,python} sdk/go.sum
 
-install_plugins::
+install_plugins:: validate_go_version
 	[ -x $(shell which pulumi) ] || curl -fsSL https://get.pulumi.com | sh
 	pulumi plugin install resource random 4.3.1
 
