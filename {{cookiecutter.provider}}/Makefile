@@ -6,7 +6,7 @@ PROVIDER_PATH    := provider
 VERSION_PATH     := ${PROVIDER_PATH}/pkg/version.Version
 
 JAVA_GEN         := pulumi-java-gen
-JAVA_GEN_VERSION := v0.9.1
+JAVA_GEN_VERSION := {{ cookiecutter.__pulumi_java_version }}
 TFGEN            := pulumi-tfgen-{{ cookiecutter.terraform_provider_name }}
 PROVIDER         := pulumi-resource-{{ cookiecutter.terraform_provider_name }}
 VERSION          := $(shell pulumictl get version)
@@ -21,8 +21,8 @@ GO_MINOR_VERSION := $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' 
 # Defines the required Go version. This is a safeguard, because
 # the (local) version must match the version specified in .github/workflows/release.yml
 # otherwise publkishing the Go SDK of the provider will fail
-REQUIRED_GO_MAJOR_VERSION := 1
-REQUIRED_GO_MINOR_VERSION := 19
+REQUIRED_GO_MAJOR_VERSION := {{ cookiecutter.__go_version_major }}
+REQUIRED_GO_MINOR_VERSION := {{ cookiecutter.__go_version_minor }}
 GO_VERSION_VALIDATION_ERR_MSG := Golang version $(REQUIRED_GO_MAJOR_VERSION).$(REQUIRED_GO_MINOR_VERSION) is required
 
 .PHONY: development provider build_sdks build_nodejs build_dotnet build_go build_python cleanup validate_go_version

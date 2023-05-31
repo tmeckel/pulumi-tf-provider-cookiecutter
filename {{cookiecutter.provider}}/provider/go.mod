@@ -1,6 +1,6 @@
 module github.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}/provider
 
-go 1.19
+go {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}
 
 replace (
 	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
@@ -18,11 +18,4 @@ require (
 	{% if not cookiecutter.terraform_provider_package_name.startswith("internal") -%}
 	{{ cookiecutter.terraform_provider_module }} {{ cookiecutter.terraform_provider_version_or_commit | go_module_version_tag }}
 	{% endif %}
-	{% if cookiecutter.terraform_sdk_version == "plugin-framework" -%}
-	github.com/pulumi/pulumi-terraform-bridge/pf v0.8.0
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.44.4-0.20230420140533-43153340d9bb
-	{% else -%}
-	github.com/pulumi/pulumi-terraform-bridge/v3 v3.44.3
-	{% endif -%}
-	github.com/pulumi/pulumi/sdk/v3 v3.64.0
 )

@@ -91,22 +91,22 @@ func Provider() tfbridge.ProviderInfo {
 {% else -%}
 func Provider() pf.ProviderInfo {
 {% endif -%}
-{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
-	// Instantiate the Terraform provider
-{% if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
-	{% if cookiecutter.terraform_sdk_version == "1" -%}
-	p := shimv1.NewProvider(shimprovider.NewProvider())
+	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
+		// Instantiate the Terraform provider
+	{% if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
+		{% if cookiecutter.terraform_sdk_version == "1" -%}
+		p := shimv1.NewProvider(shimprovider.NewProvider())
+		{% else -%}
+		p := shimv2.NewProvider(shimprovider.NewProvider())
+		{% endif %}
 	{% else -%}
-	p := shimv2.NewProvider(shimprovider.NewProvider())
-	{% endif %}
-{% else -%}
-	{% if cookiecutter.terraform_sdk_version == "1" -%}
-	p := shimv1.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
-	{% else -%}
-	p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
-	{% endif %}
-{%- endif -%}
-{% endif -%}
+		{% if cookiecutter.terraform_sdk_version == "1" -%}
+		p := shimv1.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
+		{% else -%}
+		p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
+		{% endif %}
+	{%- endif -%}
+	{% endif -%}
 
 	// Create a Pulumi provider mapping
 	prov := tfbridge.ProviderInfo{

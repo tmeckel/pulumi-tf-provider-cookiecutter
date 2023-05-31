@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 import re
 import shutil
 import sys
@@ -114,6 +115,22 @@ def remove_github_workflows():
         shutil.rmtree(github_dir)
 
 
+def remove_plugin_framework_files():
+    """
+    Removed all files specific to Pulumi Terraform Bridge Pluginframework
+    """
+    items_to_remove = [
+        "provider/cmd/pulumi-resource-{{ cookiecutter.terraform_provider_name }}/bridge-metadata.json"
+    ]
+    for item in items_to_remove:
+        path = pathlib.Path(PROJECT_DIRECTORY, item)
+        if path.is_dir():
+            # we don't use path.rmdir() because the directory must be empty, and we can't ensure this
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+
+
 def go_mod_tidy(folder):
     if "{{ cookiecutter.skip_go_mod_tidy}}".lower().strip() not in [
         "true",
@@ -123,6 +140,41 @@ def go_mod_tidy(folder):
     ]:
         go = Popen(["go", "mod", "tidy"], cwd=os.path.join(PROJECT_DIRECTORY, folder))
         go.wait()
+
+
+def go_mod_add_pulumi_mods(folder):
+    path = os.path.join(PROJECT_DIRECTORY, folder)
+
+    if "{{ cookiecutter.terraform_sdk_version }}" == "plugin-framework":
+        go = Popen(
+            [
+                "go",
+                "get",
+                "github.com/pulumi/pulumi-terraform-bridge/pf@{{ cookiecutter.__terraform_bridge_version }}",
+            ],
+            cwd=path,
+        )
+        go.wait()
+
+    go = Popen(
+        [
+            "go",
+            "get",
+            "github.com/pulumi/pulumi-terraform-bridge/v3@{{ cookiecutter.__terraform_bridge_version }}",
+        ],
+        cwd=path,
+    )
+    go.wait()
+
+    go = Popen(
+        [
+            "go",
+            "get",
+            "github.com/pulumi/pulumi/sdk/v3@{{ cookiecutter.__pulumi_sdk_version }}",
+        ],
+        cwd=path,
+    )
+    go.wait()
 
 
 def go_mod_add_provider(folder, is_shim=False):
@@ -265,6 +317,7 @@ else:
     go_mod_add_provider("provider")
     remove_shim()
 
+go_mod_add_pulumi_mods("provider")
 go_mod_tidy("provider")
 
 if "{{ cookiecutter.create_github_workflows }}".lower() not in [
@@ -274,6 +327,9 @@ if "{{ cookiecutter.create_github_workflows }}".lower() not in [
     "y",
 ]:
     remove_github_workflows()
+
+if "{{ cookiecutter.terraform_sdk_version }}".lower() != "plugin-framework":
+    remove_plugin_framework_files()
 
 if "{{ cookiecutter.provider_github_organization }}".lower() == "pulumiverse":
     os.remove(os.path.join(PROJECT_DIRECTORY, "CODE-OF-CONDUCT.md"))

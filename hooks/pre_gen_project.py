@@ -1,5 +1,6 @@
 import re
 import sys
+from packaging import version
 
 
 def _error_exit(msg):
@@ -46,9 +47,15 @@ if not re.match(SDK_VERSION_REGEX, terraform_sdk_version):
 
 if "{{ cookiecutter.provider_logoUrl }}":
     from urllib.parse import urlparse
+
     url = urlparse("{{ cookiecutter.provider_logoUrl }}")
     if not url.scheme or url.scheme not in ["http", "https"]:
         _error_exit(
             "The provider logo must be an absolute HTTP(s) URL"
             % "{{ cookiecutter.provider_logoUrl }}"
         )
+
+if version.parse("{{ cookiecutter.go_version }}") <= version.parse("1.18"):
+    _error_exit(
+        "The specified Go version {{ cookiecutter.go_version }} is out of support. Please select a higher version"
+    )

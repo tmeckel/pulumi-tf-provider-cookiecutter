@@ -1,6 +1,6 @@
 module {{ cookiecutter.terraform_provider_source }}/shim
 
-go 1.19
+go {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}
 
 require (
 {% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
