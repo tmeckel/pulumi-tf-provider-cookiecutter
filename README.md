@@ -17,6 +17,8 @@ Learn about the concepts behind [Pulumi Packages](https://www.pulumi.com/docs/gu
 
 * Python version `>= 3.7`
 
+* Packaging module `>= 19.0`
+
 * Cookiecutter version `>= 2.1`
 
   To create a new Pulumi provider using this template, Cookiecutter must be
@@ -42,7 +44,7 @@ Learn about the concepts behind [Pulumi Packages](https://www.pulumi.com/docs/gu
   1. `python3 -m venv vcoockiecutter`
   1. `source vcoockiecutter/bin/activate`
   1. `python -m pip install -U pip`
-  1. `python -m pip install cookiecutter`
+  1. `python -m pip install cookiecutter packaging`
 
 ### Creating a new provider
 
