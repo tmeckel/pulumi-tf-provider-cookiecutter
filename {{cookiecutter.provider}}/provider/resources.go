@@ -209,7 +209,7 @@ func Provider() pf.ProviderInfo {
 		},
 		Golang: &tfbridge.GolangInfo{
 			ImportBasePath: filepath.Join(
-				fmt.Sprintf("github.com/pulumi/pulumi-%[1]s/sdk/", "{{ cookiecutter.terraform_provider_name }}"),
+				fmt.Sprintf("github.com/{{ cookiecutter.provider_github_organization }}/pulumi-%[1]s/sdk/", "{{ cookiecutter.terraform_provider_name }}"),
 				tfbridge.GetModuleMajorVersion(version.Version),
 				"go",
 				"{{ cookiecutter.terraform_provider_name }}",
