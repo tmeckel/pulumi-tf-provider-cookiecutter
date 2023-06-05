@@ -1,5 +1,5 @@
 ---
-title: {{ cookiecutter.terraform_provider_name | capitalize }} Setup
+title: {{ cookiecutter.terraform_provider_name | capitalize }} Installation & Configuration
 meta_desc: Information on how to install the {{ cookiecutter.terraform_provider_name | capitalize }} provider.
 layout: installation
 ---
@@ -18,7 +18,7 @@ The Pulumi {{ cookiecutter.terraform_provider_name | capitalize }} provider is a
 The {{ cookiecutter.terraform_provider_name | capitalize }} provider binary is a third party binary. It can be installed using the `pulumi plugin` command.
 
 ```bash
-pulumi plugin install resource {{ cookiecutter.terraform_provider_name }} v0.1.7
+pulumi plugin install resource {{ cookiecutter.terraform_provider_name }}
 ```
 
 Replace the version string with your desired version.
