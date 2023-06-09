@@ -44,13 +44,6 @@ To use from .NET, install using `dotnet add package`:
 dotnet add package {{ cookiecutter.provider_dotnet_rootnamespace }}.{{ cookiecutter.terraform_provider_name | capitalize }}
 ```
 
-## Configuration
-
-The following configuration points are available for the `{{ cookiecutter.terraform_provider_name }}` provider:
-
-- `{{ cookiecutter.terraform_provider_name }}:apiKey` (environment: `{{ cookiecutter.terraform_provider_name }}_API_KEY`) - the API key for `{{ cookiecutter.terraform_provider_name }}`
-- `{{ cookiecutter.terraform_provider_name }}:region` (environment: `{{ cookiecutter.terraform_provider_name }}_REGION`) - the region in which to deploy resources
-
 ## Reference
 
 For detailed reference documentation, please visit [the Pulumi registry](https://www.pulumi.com/registry/packages/{{ cookiecutter.terraform_provider_name }}/api-docs/).
