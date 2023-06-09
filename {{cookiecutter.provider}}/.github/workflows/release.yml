@@ -3,13 +3,8 @@ on:
   push:
     tags:
       - v*.*.*
-
-# New way of setting Github token permissions instead of a Personal Access Token
-# Source: https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/
-permissions:
-  contents: write
-
 env:
+  # THIS GITHUB_TOKEN IS A REQUIREMENT TO BE ABLE TO WRITE TO GH RELEASES
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # IF YOU NEED TO PUBLISH A NPM PACKAGE THEN ENSURE A NPM_TOKEN SECRET IS SET
   # AND PUBLISH_NPM: TRUE. IF YOU WANT TO PUBLISH TO A PRIVATE NPM REGISTRY
@@ -31,19 +26,21 @@ env:
   # NEED TO CHANGE TO USE THE CORRECT PASSWORD
   PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
   PYPI_USERNAME: "__token__"
+  PYPI_REPOSITORY_URL: ""
   PUBLISH_PYPI: true
 jobs:
   publish_binary:
     name: publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
-      with:
-        # https://github.com/actions/checkout#Fetch-all-history-for-all-tags-and-branches
-        fetch-depth: 0
+    - name: Unshallow clone for tags
+      run: git fetch --prune --unshallow --tags
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: ${{matrix.goversion}}
     - name: Install pulumictl
@@ -89,7 +86,7 @@ jobs:
       - name: Setup DotNet
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: ${{matrix.dotnetverson}}
+          dotnet-version: ${{matrix.dotnetversion}}
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
@@ -127,7 +124,7 @@ jobs:
       fail-fast: true
       matrix:
         dotnetversion:
-          - 3.1.301
+          - 6.0.x
         goversion:
           {%endraw%}- {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}.x{%raw%}
         language:
