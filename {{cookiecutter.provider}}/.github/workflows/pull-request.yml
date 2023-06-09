@@ -1,0 +1,39 @@
+{%raw%}# Jobs that run on every pull-request, regardless of its contents.
+name: pull-request
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-provider:
+    runs-on: ubuntu-latest
+    name: Build SDKs
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build SDKs
+        run: make build_sdks
+
+      - name: Check worktree clean
+        run: |
+          git update-index -q --refresh
+          if ! git diff-files --quiet; then
+              >&2 echo "error: working tree is not clean, aborting!"
+              git status
+              git diff
+              exit 1
+          fi
+
+      - name: Check gofmt
+        run: |
+          gofmt_files=$(find . -name '*.go' | grep -v vendor | xargs gofmt -l)
+          if [ -n "${gofmt_files}" ]; then
+              echo 'gofmt needs running on the following files:'
+              echo "${gofmt_files}"
+              echo "You can use the command: \`make fmt\` to reformat code."
+              exit 1
+          fi
+{%endraw%}
