@@ -112,6 +112,11 @@ help::
 clean::
 	rm -rf sdk/{dotnet,nodejs,go,python} sdk/go.sum
 
+.PHONY: fmt
+fmt::
+	@echo "Fixing source code with gofmt..."
+	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
+
 install_plugins:: validate_go_version
 	[ -x $(shell which pulumi) ] || curl -fsSL https://get.pulumi.com | sh
 	pulumi plugin install resource random 4.3.1
