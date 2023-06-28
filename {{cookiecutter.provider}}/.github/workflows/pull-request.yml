@@ -1,21 +1,130 @@
-{%raw%}# Jobs that run on every pull-request, regardless of its contents.
-name: pull-request
+{%raw%}
+name: release
 
 on:
-  pull_request:
   push:
-    branches:
-      - main
+    tags:
+      - v*.*.*
+    paths-ignore:
+      - docs
+      - .devcontainer
+      - examples
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # IF YOU NEED TO PUBLISH A NPM PACKAGE THEN ENSURE A NPM_TOKEN SECRET IS SET
+  # AND PUBLISH_NPM: TRUE. IF YOU WANT TO PUBLISH TO A PRIVATE NPM REGISTRY
+  # THEN ENSURE THE NPM_REGISTRY_URL IS CHANGED
+  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  PUBLISH_NPM: true
+  NPM_REGISTRY_URL: https://registry.npmjs.org
+  # IF YOU NEED TO PUBLISH A NUGET PACKAGE THEN ENSURE AN NUGET_PUBLISH_KEY
+  # SECRET IS SET AND PUBLISH_NUGET: TRUE. IF YOU WANT TO PUBLISH TO AN ALTERNATIVE
+  # NPM REGISTRY THEN ENSURE THE NPM_REGISTRY_URL IS CHANGED
+  NUGET_PUBLISH_KEY: ${{ secrets.NUGET_PUBLISH_KEY }}
+  NUGET_FEED_URL: https://api.nuget.org/v3/index.json
+  PUBLISH_NUGET: true
+  # IF YOU NEED TO PUBLISH A PYPI PACKAGE THEN ENSURE AN PYPI_API_TOKEN
+  # SECRET IS SET AND PUBLISH_PYPI: TRUE. IF YOU WANT TO PUBLISH TO AN ALTERNATIVE
+  # PYPI REGISTRY THEN ENSURE THE PYPI_REPOSITORY_URL IS SET. IF YOU ARE USING AN API_TOKEN THEN
+  # YOU DO NOT NEED TO CHANGE THE PYPI_USERNAME (__token__) , IF YOU ARE USING PASSWORD AUTHENTICATION THEN YOU WILL
+  # NEED TO CHANGE TO USE THE CORRECT PASSWORD
+  PYPI_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+  PYPI_USERNAME: "__token__"
+  PYPI_REPOSITORY_URL: ""
+  PUBLISH_PYPI: true
 
 jobs:
-  build-provider:
+  publish_binary:
+    name: publish
     runs-on: ubuntu-latest
-    name: Build SDKs
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v2
+    - name: Checkout Repo
+      uses: actions/checkout@v3
 
-      - name: Build SDKs
-        run: make build_sdks
+    - name: Unshallow clone for tags
+      run: git fetch --prune --unshallow --tags
+
+    - name: Install Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{matrix.goversion}}
+
+    - name: Install pulumictl
+      uses: jaxxstorm/action-install-gh-release@v1.10.0
+      with:
+        repo: pulumi/pulumictl
+
+    - name: Set PreRelease Version
+      run: echo "GORELEASER_CURRENT_TAG=v$(pulumictl get version --language generic)" >> $GITHUB_ENV
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v2
+      with:
+        args: -p 3 release --rm-dist
+        version: latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        goversion:
+        {%endraw%}- {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}.x{%raw%}
+
+  publish_sdk:
+    name: Publish SDKs
+    runs-on: ubuntu-latest
+    needs: publish_binary
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Unshallow clone for tags
+        run: git fetch --prune --unshallow --tags
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.goversion }}
+
+      - name: Install pulumictl
+        uses: jaxxstorm/action-install-gh-release@v1.10.0
+        with:
+          repo: pulumi/pulumictl
+
+      - name: Install pulumi
+        uses: pulumi/actions@v4
+
+      - if: ${{ matrix.language == 'nodejs'}}
+        name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{matrix.nodeversion}}
+          registry-url: ${{env.NPM_REGISTRY_URL}}
+
+      - if: ${{ matrix.language == 'dotnet'}}
+        name: Setup DotNet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{matrix.dotnetversion}}
+
+      - if: ${{ matrix.language == 'java'}}
+        name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          cache: gradle
+          distribution: temurin
+          java-version: ${{matrix.javaversion}}
+
+      - if: ${{ matrix.language == 'python'}}
+        name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{matrix.pythonversion}}
+
+      - name: Build SDK
+        run: make build_${{ matrix.language }}
 
       - name: Check worktree clean
         run: |
@@ -27,13 +136,44 @@ jobs:
               exit 1
           fi
 
-      - name: Check gofmt
+      - if: ${{ matrix.language == 'python' && env.PUBLISH_PYPI == 'true' }}
+        name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: ${{ env.PYPI_USERNAME }}
+          password: ${{ env.PYPI_PASSWORD }}
+          packages_dir: ${{github.workspace}}/sdk/python/bin/dist
+
+      - if: ${{ matrix.language == 'nodejs' && env.PUBLISH_NPM == 'true' }}
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          access: "public"
+          token: ${{ env.NPM_TOKEN }}
+          package: ${{github.workspace}}/sdk/nodejs/bin/package.json
+
+      - if: ${{ matrix.language == 'dotnet' && env.PUBLISH_NUGET == 'true' }}
+        name: publish nuget package
         run: |
-          gofmt_files=$(find . -name '*.go' | grep -v vendor | xargs gofmt -l)
-          if [ -n "${gofmt_files}" ]; then
-              echo 'gofmt needs running on the following files:'
-              echo "${gofmt_files}"
-              echo "You can use the command: \`make fmt\` to reformat code."
-              exit 1
-          fi
+          dotnet nuget push ${{github.workspace}}/sdk/dotnet/bin/Debug/*.nupkg -s ${{ env.NUGET_FEED_URL }} -k ${{ env.NUGET_PUBLISH_KEY }}
+          echo "done publishing packages"
+
+    strategy:
+      fail-fast: true
+      matrix:
+        dotnetversion:
+          - 6.0.x
+        goversion:
+          {%endraw%}- {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}.x{%raw%}
+        nodeversion:
+          - 16.x
+        pythonversion:
+          - "3.9"
+        # javaversion:
+        # - "11"
+        language:
+          - nodejs
+          - python
+          - dotnet
+          - go
+          # - java
 {%endraw%}
