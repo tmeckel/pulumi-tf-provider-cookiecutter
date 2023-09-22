@@ -39,7 +39,7 @@
     "skip_git_init": "no",
 
     "__terraform_bridge_version": "{{ get_latest_release_commit('pulumi-terraform-bridge') }}",
-    "__pulumi_sdk_version": "v3.66.0",
+    "__pulumi_sdk_version": "v3.81.0",
     "__pulumi_ctl_version": "{{ get_latest_release('pulumictl') }}",
     "__pulumi_java_version": "{{ get_latest_release('pulumi-java') }}",
     "__go_version_major": "{{ cookiecutter.go_version | version_major }}",
