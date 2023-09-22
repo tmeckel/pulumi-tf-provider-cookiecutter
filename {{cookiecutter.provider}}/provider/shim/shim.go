@@ -21,9 +21,7 @@ import (
 	tf "github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
-func NewProvider() func() tf.Provider {
-	return func() tf.Provider {
+func NewProvider() tf.Provider {
 		return provider.New()
-	}
 }
 {% endif -%}
