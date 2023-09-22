@@ -25,15 +25,15 @@ import (
 	"github.com/ettle/strcase"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/util/contract"
-{%- if cookiecutter.terraform_sdk_version != "plugin-framework" %}
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
+	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
+	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
+{%- if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 	{% if cookiecutter.terraform_sdk_version == "1" -%}
 	shimv1 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v1"
 	{% else -%}
 	shimv2 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v2"
 	{%- endif %}
-	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 {%- endif %}
 {%- if cookiecutter.terraform_provider_package_name.startswith("internal") %}
 	shimprovider "{{ cookiecutter.terraform_provider_module }}/shim"
@@ -42,7 +42,6 @@ import (
 {%- endif %}
 {%- if cookiecutter.terraform_sdk_version == "plugin-framework" %}
 	pf "github.com/pulumi/pulumi-terraform-bridge/pf/tfbridge"
-	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 {%- endif %}
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 )
@@ -75,7 +74,6 @@ func makeResource(mod string, res string) tokens.Type {
 	return tfbridge.MakeResource("{{ cookiecutter.terraform_provider_name }}", mod, convertName(res))
 }
 
-{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
 // preConfigureCallback is called before the providerConfigure function of the underlying provider.
 // It should validate that the provider can be configured, and provide actionable errors in the case
 // it cannot be. Configuration variables can be read from `vars` using the `stringValue` function -
@@ -83,36 +81,35 @@ func makeResource(mod string, res string) tokens.Type {
 func preConfigureCallback(vars resource.PropertyMap, c shim.ResourceConfig) error {
 	return nil
 }
-{% endif %}
 
 // Provider returns additional overlaid schema and metadata associated with the provider..
-{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
 func Provider() tfbridge.ProviderInfo {
-{% else -%}
-func Provider() pf.ProviderInfo {
-{% endif -%}
+	// Instantiate the Terraform provider
 	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
-		// Instantiate the Terraform provider
-	{% if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
-		{% if cookiecutter.terraform_sdk_version == "1" -%}
-		p := shimv1.NewProvider(shimprovider.NewProvider())
+		{% if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
+			{% if cookiecutter.terraform_sdk_version == "1" -%}
+	p := shimv1.NewProvider(shimprovider.NewProvider())
+			{% else -%}
+	p := shimv2.NewProvider(shimprovider.NewProvider())
+			{% endif %}
 		{% else -%}
-		p := shimv2.NewProvider(shimprovider.NewProvider())
-		{% endif %}
+			{% if cookiecutter.terraform_sdk_version == "1" -%}
+	p := shimv1.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
+			{% else -%}
+	p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
+			{% endif %}
+		{%- endif -%}
 	{% else -%}
-		{% if cookiecutter.terraform_sdk_version == "1" -%}
-		p := shimv1.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
-		{% else -%}
-		p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
-		{% endif %}
-	{%- endif -%}
+		{%- if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
+	p := pf.ShimProvider(shimprovider.NewProvider())
+		{%- else -%}
+	p := pf.ShimProvider({{ cookiecutter.terraform_provider_package_name }}.NewProvider())
+		{% endif -%}
 	{% endif -%}
 
 	// Create a Pulumi provider mapping
 	prov := tfbridge.ProviderInfo{
-		{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
 		P:    p,
-		{% endif -%}
 		Name: "{{ cookiecutter.terraform_provider_name }}",
 		// DisplayName is a way to be able to change the casing of the provider
 		// name when being displayed on the Pulumi registry
@@ -161,9 +158,7 @@ func Provider() pf.ProviderInfo {
 			// 	},
 			// },
 		},
-		{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
 		PreConfigureCallback: preConfigureCallback,
-		{% endif -%}
 		Resources:            map[string]*tfbridge.ResourceInfo{
 			// Map each resource in the Terraform provider to a Pulumi type. Two examples
 			// are below - the single line form is the common case. The multi-line form is
@@ -228,18 +223,7 @@ func Provider() pf.ProviderInfo {
 		},
 	}
 
-{% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 	prov.SetAutonaming(255, "-")
 
 	return prov
-{% elif cookiecutter.terraform_sdk_version == "plugin-framework" %}
-	return pf.ProviderInfo{
-		ProviderInfo: prov,
-{%- if cookiecutter.terraform_provider_package_name.startswith("internal") %}
-		NewProvider:  shimprovider.NewProvider(),
-{%- else %}
-		{{ cookiecutter.terraform_provider_package_name }}.NewProvider()
-{% endif -%}
-	}
-{% endif -%}
 }
