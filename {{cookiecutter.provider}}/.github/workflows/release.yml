@@ -1,4 +1,5 @@
-{%raw%}name: release
+{% raw -%}
+name: release
 
 on:
   push:
@@ -69,7 +70,7 @@ jobs:
       fail-fast: true
       matrix:
         goversion:
-        {%endraw%}- {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}.x{%raw%}
+        {% endraw %}- {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}.x{% raw %}
 
   publish_sdk:
     name: Publish SDKs
@@ -167,12 +168,11 @@ jobs:
           - 16.x
         pythonversion:
           - "3.9"
-        # javaversion:
-        # - "11"
+        javaversion:
+          - "11"
         language:
           - nodejs
           - python
           - dotnet
           - go
-          # - java
-{%endraw%}
+          # - java{% endraw %}
