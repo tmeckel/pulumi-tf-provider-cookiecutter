@@ -160,23 +160,18 @@ func Provider() tfbridge.ProviderInfo {
 		},
 		PreConfigureCallback: preConfigureCallback,
 		Resources:            map[string]*tfbridge.ResourceInfo{
-			// Map each resource in the Terraform provider to a Pulumi type. Two examples
-			// are below - the single line form is the common case. The multi-line form is
-			// needed only if you wish to override types or other default options.
+			// Map each resource in the Terraform provider to a Pulumi type.
 			//
-			// "aws_iam_role": {Tok: makeResource(mainMod(mainMod, "aws_iam_role")}
-			//
-			// "aws_acm_certificate": {
-			// 	Tok: Tok: makeResource(mainMod(mainMod, "aws_acm_certificate"),
-			// 	Fields: map[string]*tfbridge.SchemaInfo{
-			// 		"tags": {Type: tfbridge.MakeType("{{ cookiecutter.terraform_provider_name }}", "Tags")},
-			// 	},
-			// },
+			// "aws_iam_role": {
+			//   Tok: makeResource(mainMod, "aws_iam_role"),
+		  // },
 		},
 		DataSources: map[string]*tfbridge.DataSourceInfo{
-			// Map each resource in the Terraform provider to a Pulumi function. An example
-			// is below.
-			// "aws_ami": {Tok: makeDataSource(mainMod, "aws_ami")},
+			// Map each data source in the Terraform provider to a Pulumi function.
+			//
+			// "aws_ami": {
+			//	Tok: makeDataSource(mainMod, "aws_ami"),
+			// },
 		},
 		JavaScript: &tfbridge.JavaScriptInfo{
 			PackageName: "{{ cookiecutter.provider_javascript_package }}",
