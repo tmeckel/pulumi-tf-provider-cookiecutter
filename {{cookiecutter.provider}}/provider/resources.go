@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:generate go run generate.go
 package {{ cookiecutter.terraform_provider_name }}
 
 import (
-	{% if cookiecutter.terraform_sdk_version == "plugin-framework" -%}
+	{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
 	_ "embed"
-{%- endif %}
+{% endif %}
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -28,25 +29,25 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
 	shim "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
-{%- if cookiecutter.terraform_sdk_version != "plugin-framework" %}
-	{% if cookiecutter.terraform_sdk_version == "1" -%}
+{% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
+	{% if cookiecutter.terraform_sdk_version == "1" %}
 	shimv1 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v1"
-	{% else -%}
+	{% else %}
 	shimv2 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v2"
-	{%- endif %}
-{%- endif %}
-{%- if cookiecutter.terraform_provider_package_name.startswith("internal") %}
+	{% endif %}
+{% endif %}
+{% if cookiecutter.terraform_provider_package_name.startswith("internal") %}
 	shimprovider "{{ cookiecutter.terraform_provider_module }}/shim"
-{%- else %}
+{% else %}
 	"{{ cookiecutter.terraform_provider_module }}/{{ cookiecutter.terraform_provider_package_name }}"
-{%- endif %}
-{%- if cookiecutter.terraform_sdk_version == "plugin-framework" %}
+{% endif %}
+{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
 	pf "github.com/pulumi/pulumi-terraform-bridge/pf/tfbridge"
-{%- endif %}
+{% endif %}
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 )
 
-{% if cookiecutter.terraform_sdk_version == "plugin-framework" -%}
+{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
 //go:embed cmd/pulumi-resource-{{ cookiecutter.terraform_provider_name }}/bridge-metadata.json
 var bridgeMetadata []byte
 {% endif %}
@@ -85,27 +86,27 @@ func preConfigureCallback(vars resource.PropertyMap, c shim.ResourceConfig) erro
 // Provider returns additional overlaid schema and metadata associated with the provider..
 func Provider() tfbridge.ProviderInfo {
 	// Instantiate the Terraform provider
-	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
-		{% if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
-			{% if cookiecutter.terraform_sdk_version == "1" -%}
+	{% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
+		{% if cookiecutter.terraform_provider_package_name.startswith("internal") %}
+			{% if cookiecutter.terraform_sdk_version == "1" %}
 	p := shimv1.NewProvider(shimprovider.NewProvider())
-			{% else -%}
+			{% else %}
 	p := shimv2.NewProvider(shimprovider.NewProvider())
 			{% endif %}
-		{% else -%}
-			{% if cookiecutter.terraform_sdk_version == "1" -%}
+		{% else %}
+			{% if cookiecutter.terraform_sdk_version == "1" %}
 	p := shimv1.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
-			{% else -%}
+			{% else %}
 	p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
 			{% endif %}
-		{%- endif -%}
-	{% else -%}
-		{%- if cookiecutter.terraform_provider_package_name.startswith("internal") -%}
+		{% endif %}
+	{% else %}
+		{% if cookiecutter.terraform_provider_package_name.startswith("internal") %}
 	p := pf.ShimProvider(shimprovider.NewProvider())
-		{%- else -%}
+		{% else %}
 	p := pf.ShimProvider({{ cookiecutter.terraform_provider_package_name }}.NewProvider())
-		{% endif -%}
-	{% endif -%}
+		{% endif %}
+	{% endif %}
 
 	// Create a Pulumi provider mapping
 	prov := tfbridge.ProviderInfo{
@@ -145,9 +146,9 @@ func Provider() tfbridge.ProviderInfo {
 		// should match the TF provider module's require directive, not any replace directives.
 		Version:   version.Version,
 		GitHubOrg: "{{ cookiecutter.terraform_provider_org }}",
-		{% if cookiecutter.terraform_sdk_version == "plugin-framework" -%}
+		{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
 		MetadataInfo: tfbridge.NewProviderMetadata(bridgeMetadata),
-		{% endif -%}
+		{% endif %}
 		Config:    map[string]*tfbridge.SchemaInfo{
 			// Add any required configuration here, or remove the example below if
 			// no additional points are required.
