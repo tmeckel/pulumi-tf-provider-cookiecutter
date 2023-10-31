@@ -108,6 +108,9 @@ help::
  	sed "s/\(.\+\):\s*\(.*\) #\s*\(.*\)/`printf "\033[93m"`\1`printf "\033[0m"`	\3 [\2]/" | \
  	expand -t20
 
+generate::
+	go generate provider/resources.go
+
 clean::
 	rm -rf sdk/{dotnet,nodejs,go,python} sdk/go.sum
 

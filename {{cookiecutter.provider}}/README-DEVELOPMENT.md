@@ -3,6 +3,21 @@
 This document describes the procedures for developing and maintaining a Pulumi
 provider based on the Pulumi Terraform Bridge.
 
+- [Developing with a Terraform Bridge Provider](#developing-with-a-terraform-bridge-provider)
+  - [Creating a Pulumi Terraform Bridge Provider](#creating-a-pulumi-terraform-bridge-provider)
+    - [Prerequisites](#prerequisites)
+    - [Publishing checklist](#publishing-checklist)
+    - [Composing the Provider Code - Prerequisites](#composing-the-provider-code---prerequisites)
+  - [Adding Mappings, Building the Provider and SDKs](#adding-mappings-building-the-provider-and-sdks)
+    - [Autogeneration of mapping](#autogeneration-of-mapping)
+    - [Manually add mapping](#manually-add-mapping)
+    - [Building the provider and SDKs](#building-the-provider-and-sdks)
+  - [Sample Program](#sample-program)
+  - [Add End-to-end Testing](#add-end-to-end-testing)
+{% if cookiecutter.create_github_workflows | truthy %}
+  - [CI/CD with GitHub Actions](#cicd-with-github-actions)
+{% endif %}
+
 ## Creating a Pulumi Terraform Bridge Provider
 
 The following instructions cover:
@@ -113,6 +128,24 @@ cohesion of a provider's code, thereby making it easier for developers to use.
 If your provider has a large number of resources, consider using namespaces to
 improve usability.
 
+### Autogeneration of mapping
+
+The repository contains a GO generator (`provider/generator.go`) to
+automatically create reported missing data sources and resources from `tfgen`.
+
+The generator can be executed at any time by _building_ the target `generate`
+from the Makefile:
+
+    ```bash
+    make generate
+    ```
+
+The generator will report all added resources and/or data sources if any where
+detected. If any missing mappings where detected and resolved the `resources.go`
+file will be formatted using `go fmt`.
+
+### Manually add mapping
+
 The following instructions all pertain to `provider/resources.go`, in the
 section of the code where we construct a `tfbridge.ProviderInfo` object:
 
@@ -193,7 +226,10 @@ section of the code where we construct a `tfbridge.ProviderInfo` object:
         },
     ```
 
-1. Build the provider binary and ensure there are no warnings about unmapped resources and no warnings about unmapped data sources:
+### Building the provider and SDKs
+
+1. Build the provider binary and ensure there are no warnings about unmapped
+   resources and no warnings about unmapped data sources:
 
     ```bash
     make provider
@@ -327,44 +363,31 @@ We can run integration tests on our examples using the `*_test.go` files in the
     ```bash
     cd examples && go test -v -tags=nodejs
     ```
+{% if cookiecutter.create_github_workflows | truthy %}
 
-## Configuring CI with GitHub Actions
+## CI/CD with GitHub Actions
 
-### Third-party providers
+The repository contains two GitHub workflows for publishing new releases and
+performing build validation for pull requests:
 
-1. Follow the instructions laid out in the [deployment templates](./deployment-templates/README-DEPLOYMENT.md).
+- Release workflow: `.github/workflows/release.yml`
+- Pull Request validation: `.github/workflows/pull-request.yml`
 
-### Pulumi Internal
+The GitHub release workflow requires the following GitHub secrets (variables) to
+be configured in the workflow envinronment. Refer to the [GitHub documentation](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions)
+how to configure secrets and variables for workflows for any details.
 
-In this section, we'll add the necessary configuration to work with GitHub
-Actions for Pulumi's standard CI/CD workflows for providers.
+- `GITHUB_TOKEN`: The GitHhub is required to push a new release of the provider
+      to GitHub. Thus the GitHub token must include the permission `contents:
+      write`
+- `NPM_TOKEN`: The token is used to authenticate towards NPMJS.com to push the NodeJS SDK
+- `NUGET_PUBLISH_KEY`: The token is required to publish the dotnet SDK to nuget.org
+- `PYPI_PASSWORD`: The token is used to publish the Python SDK on PyPi.org
 
-1. Generate GitHub workflows per [the instructions in the ci-mgmt
-   repository](https://github.com/pulumi/ci-mgmt/) and copy to `.github/` in
-   this repository.
-
-1. Ensure that any required secrets are present as repository-level
-   [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets)
-   in GitHub.  These will be used by the integration tests during the CI/CD
-   process.
-
-1. Repository settings: Toggle `Allow auto-merge` on in your provider repo to
-   automate GitHub Actions workflow updates.
-
-## Final Steps
-
-1. Ensure all required configurations (API keys, etc.) are documented in README.md.
-
-1. If publishing the npm package fails during the "Publish SDKs" Action, perform the following steps:
-
-    1. Go to [NPM Packages](https://www.npmjs.com/) and sign in as pulumi-bot.
-
-    1. Click on the bot's profile pic and navigate to "Packages".
-
-    1. On the left, under "Organizations, click on the Pulumi organization.
-
-    1. On the last page of the listed packages, you should see the new package.
-
-    1. Under "Settings", set the Package Status to "public".
+> **Note:**  
+> The release workflow will be triggred when a new version tag (format: `v*`) is
+> pushed to the repository.
 
 Now you are ready to use the provider, cut releases, and have some well-deserved :ice_cream:!
+{% endif %}
+

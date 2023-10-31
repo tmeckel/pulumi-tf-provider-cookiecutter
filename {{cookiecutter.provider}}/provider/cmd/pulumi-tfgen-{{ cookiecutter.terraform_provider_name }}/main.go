@@ -16,18 +16,18 @@ package main
 
 import (
 	{{ cookiecutter.terraform_provider_name }} "github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider"
-	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
+	{% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfgen"
-	{% else -%}
+	{% else %}
 	"github.com/pulumi/pulumi-terraform-bridge/pf/tfgen"
-	{% endif -%}
+	{% endif %}
 )
 
 func main() {
-	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
+	{% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 	tfgen.Main("{{ cookiecutter.terraform_provider_name }}", version.Version, {{ cookiecutter.terraform_provider_name }}.Provider())
-	{% else -%}
+	{% else %}
 	tfgen.Main("{{ cookiecutter.terraform_provider_name }}", {{ cookiecutter.terraform_provider_name }}.Provider())
-	{% endif -%}
+	{% endif %}
 }

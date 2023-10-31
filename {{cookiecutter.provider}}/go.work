@@ -2,9 +2,9 @@ go 1.18
 
 use (
     ./provider
-    {%- if cookiecutter.terraform_provider_package_name.startswith("internal") %}
+    {% if cookiecutter.terraform_provider_package_name.startswith("internal") %}
     ./provider/shim
-    {%- endif %}
+    {% endif %}
     // ******
     // Add ./sdk folder when SDK has been published the first time
     // ./sdk

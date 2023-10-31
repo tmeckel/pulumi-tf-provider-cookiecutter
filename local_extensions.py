@@ -72,7 +72,7 @@ class LocalExtension(Extension):
         super().__init__(environment)
         environment.globals["get_latest_release"] = get_latest_release
         environment.globals["get_latest_release_commit"] = get_latest_release_commit
-        environment.tests["truthy"] = is_truthy
+        environment.filters["truthy"] = is_truthy
         environment.filters["capitalize"] = capitalize
         environment.filters["go_module_version"] = go_module_version
         environment.filters["go_module_name"] = go_module_name
