@@ -104,8 +104,11 @@ After the Cookiecutter template has created the new directory for the Pulumi
 provider, you can change to this directory and use the `make tfgen` command to
 check whether the Terraform provider has been referenced correctly.
 
-For guidance how to further develop the newly created Pulumi provider refer to
-`README-DEVELOPMENT.md` in the provider directory.
+> **Note**  
+> For guidance how to further develop the newly created Pulumi provider refer to
+> `README-DEVELOPMENT.md` in the provider directory especially how to map
+> resources and data sources from the upstream Terraform provider including the
+> possbility to autogenerate hose mappings.
 
 ## Parameter details
 
