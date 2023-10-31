@@ -5,11 +5,11 @@ We have a few tips and housekeeping items to help you get up and running.
 
 ## Code of Conduct
 
-Please make sure to read and observe our [Code of Conduct]({%- if cookiecutter.provider_github_organization.lower() == "pulumiverse" -%}
+Please make sure to read and observe our [Code of Conduct]({% if cookiecutter.provider_github_organization.lower() == "pulumiverse" %}
 https://github.com/pulumiverse/.github/blob/main/CODE_OF_CONDUCT.md
-{%- else -%}
+{% else %}
 ./CODE-OF-CONDUCT.md
-{%- endif -%}
+{% endif %}
 )
 
 ## Community Expectations

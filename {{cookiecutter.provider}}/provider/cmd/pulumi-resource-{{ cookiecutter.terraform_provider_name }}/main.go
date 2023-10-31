@@ -17,17 +17,17 @@
 package main
 
 import (
-	{% if cookiecutter.terraform_sdk_version == "plugin-framework" -%}
+	{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
 	"context"
-	{% endif -%}
+	{% endif %}
 	_ "embed"
 
-	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
+	{% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 	{% else %}
 	"github.com/pulumi/pulumi-terraform-bridge/pf/tfbridge"
-	{% endif -%}
+	{% endif %}
 	{{ cookiecutter.terraform_provider_name }} "github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider"
 )
 
@@ -35,9 +35,9 @@ import (
 var pulumiSchema []byte
 
 func main() {
-	{% if cookiecutter.terraform_sdk_version != "plugin-framework" -%}
+	{% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 	tfbridge.Main("{{ cookiecutter.terraform_provider_name }}", version.Version, {{ cookiecutter.terraform_provider_name }}.Provider(), pulumiSchema)
-	{% else -%}
+	{% else %}
 	meta := tfbridge.ProviderMetadata{PackageSchema: pulumiSchema}
 	tfbridge.Main(context.Background(), "{{ cookiecutter.terraform_provider_name }}", {{ cookiecutter.terraform_provider_name }}.Provider(), meta)
 	{% endif %}
