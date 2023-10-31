@@ -45,6 +45,10 @@
     "__go_version_major": "{{ cookiecutter.go_version | version_major }}",
     "__go_version_minor": "{{ cookiecutter.go_version | version_minor }}",
 
+    "_jinja2_env_vars": {
+        "lstrip_blocks": true,
+        "trim_blocks": true
+    },
     "_copy_without_render": [],
     "_extensions": [
         "local_extensions.LocalExtension"
