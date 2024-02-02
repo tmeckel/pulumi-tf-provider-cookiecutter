@@ -1,0 +1,45 @@
+[lint]
+select = [
+  # use "ruff linter" to list all available linters
+  "E",
+  "W",
+  "F",
+  "I",
+  "C",
+  "B",
+  "PL",
+  "PT",
+  "UP",
+  "RUF",
+  "N",
+  "ASYNC",
+  "C4",
+  "EM",
+  "FA",
+  "ISC",
+  "ICN",
+  "RSE",
+  "SLF",
+  "SLOT",
+  "SIM",
+  "TID",
+  "TCH",
+  "PERF",
+]
+ignore = [
+  "E501",    # line too long, handled by black
+  "B008",    # do not perform function calls in argument defaults
+  "C901",    # too complex
+  "W191",    # indentation contains tabs
+  "PLR0913", # too many arguments
+  "EM101",   # Exception must not use a string literal, assign to variable first
+  "EM102",   # Exception must not use an f-string literal, assign to variable first
+  "UP031",   # Use format specifiers instead of percent format
+]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[lint.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true
