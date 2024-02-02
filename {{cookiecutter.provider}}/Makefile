@@ -99,6 +99,9 @@ $(WORKING_DIR)/bin/$(JAVA_GEN)::
 lint_provider:: provider # lint the provider code
 	cd provider && golangci-lint run -c ../.golangci.yml
 
+tidy:: # call go mod tidy in relevant directories
+	find ./provider -name go.mod -execdir go mod tidy \;
+
 cleanup:: # cleans up the temporary directory
 	rm -r $(WORKING_DIR)/bin
 	rm -f provider/cmd/${PROVIDER}/schema.go
@@ -107,9 +110,6 @@ help::
 	@grep '^[^.#]\+:\s\+.*#' Makefile | \
  	sed "s/\(.\+\):\s*\(.*\) #\s*\(.*\)/`printf "\033[93m"`\1`printf "\033[0m"`	\3 [\2]/" | \
  	expand -t20
-
-generate::
-	go generate provider/resources.go
 
 clean::
 	rm -rf sdk/{dotnet,nodejs,go,python} sdk/go.sum
