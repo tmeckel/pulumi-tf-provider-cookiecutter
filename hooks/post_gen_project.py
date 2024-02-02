@@ -69,7 +69,7 @@ def _get_go_pseudo_version(commit_url):
 
 def _split_provider_source(provider_source):
     provider_source_elements = provider_source.split("/")
-    if len(provider_source_elements) < 3:
+    if len(provider_source_elements) < 3:  # noqa: PLR2004
         raise ValueError(
             "terraform_provider_source [%s] has an invalid format" % provider_source
         )
@@ -88,12 +88,12 @@ def init_git():
     """
 
     if not os.path.exists(".git"):
-        GIT_COMMANDS = [
+        git_commands = [
             ["git", "init", "-b", "main"],
             ["git", "commit", "--allow-empty", "-m", "Initial Commit."],
         ]
 
-        for command in GIT_COMMANDS:
+        for command in git_commands:
             git = Popen(command, cwd=PROJECT_DIRECTORY)
             git.wait()
 
@@ -119,9 +119,14 @@ def remove_plugin_framework_files():
     """
     Removed all files specific to Pulumi Terraform Bridge Pluginframework
     """
-    items_to_remove = [
-        "provider/cmd/pulumi-resource-{{ cookiecutter.terraform_provider_name }}/bridge-metadata.json"
-    ]
+    items_to_remove = []
+    if "{{ cookiecutter.provider_mapping_strategy }}" == "manual":  # noqa: PLR0133
+        items_to_remove.extend(
+            [
+                "provider/cmd/pulumi-resource-{{ cookiecutter.terraform_provider_name }}/bridge-metadata.json"
+            ]
+        )
+
     for item in items_to_remove:
         path = pathlib.Path(PROJECT_DIRECTORY, item)
         if path.is_dir():
@@ -132,7 +137,7 @@ def remove_plugin_framework_files():
 
 
 def go_mod_tidy(folder):
-    if "{{ cookiecutter.skip_go_mod_tidy}}".lower().strip() not in [
+    if "{{ cookiecutter.skip_go_mod_tidy }}".lower().strip() not in [
         "true",
         "1",
         "yes",
@@ -145,12 +150,12 @@ def go_mod_tidy(folder):
 def go_mod_add_pulumi_mods(folder):
     path = os.path.join(PROJECT_DIRECTORY, folder)
 
-    if "{{ cookiecutter.terraform_sdk_version }}" == "plugin-framework":
+    if "{{ cookiecutter.terraform_sdk_version }}" == "plugin-framework":  # noqa: PLR0133
         go = Popen(
             [
                 "go",
                 "get",
-                "github.com/pulumi/pulumi-terraform-bridge/pf@{{ cookiecutter.__terraform_bridge_version }}",
+                "github.com/pulumi/pulumi-terraform-bridge/pf@{{ cookiecutter.__pulumi_terraform_bridge_version }}",
             ],
             cwd=path,
         )
@@ -160,7 +165,7 @@ def go_mod_add_pulumi_mods(folder):
         [
             "go",
             "get",
-            "github.com/pulumi/pulumi-terraform-bridge/v3@{{ cookiecutter.__terraform_bridge_version }}",
+            "github.com/pulumi/pulumi-terraform-bridge/v3@{{ cookiecutter.__pulumi_terraform_bridge_version }}",
         ],
         cwd=path,
     )
@@ -177,7 +182,7 @@ def go_mod_add_pulumi_mods(folder):
     go.wait()
 
 
-def go_mod_add_provider(folder, is_shim=False):
+def go_mod_add_provider(folder, is_shim=False):  # noqa: PLR0915
     path = os.path.join(PROJECT_DIRECTORY, folder)
 
     version = "{{ cookiecutter.terraform_provider_version_or_commit }}".strip()
@@ -260,43 +265,40 @@ def go_mod_add_provider(folder, is_shim=False):
         )
         go.wait()
 
-    else:
-        if not provider_module_version and major_version and int(major_version) > 1:
-            provider_source_elements = _split_provider_source(provider_source)
+    elif not provider_module_version and major_version and int(major_version) > 1:
+        provider_source_elements = _split_provider_source(provider_source)
 
-            if major_version and int(major_version) > 1:
-                _logger.error(
-                    "Using a versionless provider module %s with a version reference %s; converting to pseudo-version",
-                    provider_source,
-                    version,
-                )
+        if major_version and int(major_version) > 1:
+            _logger.error(
+                "Using a versionless provider module %s with a version reference %s; converting to pseudo-version",
+                provider_source,
+                version,
+            )
 
-                tags_url = "https://api.github.com/repos/%s/%s/git/refs/tags/%s" % (
-                    provider_source_elements[1],
-                    provider_source_elements[2],
-                    version,
-                )
-                pseudo_version = _get_go_pseudo_version(
-                    _get_commit_url_from_tag(tags_url)
-                )
+            tags_url = "https://api.github.com/repos/%s/%s/git/refs/tags/%s" % (
+                provider_source_elements[1],
+                provider_source_elements[2],
+                version,
+            )
+            pseudo_version = _get_go_pseudo_version(_get_commit_url_from_tag(tags_url))
 
-            else:
-                _logger.error(
-                    "Using a versionless provider module %s with a commit reference %s; converting to pseudo-version",
-                    provider_source,
-                    version,
-                )
-
-                commit_url = "https://api.github.com/repos/%s/%s/commits/%s" % (
-                    provider_source_elements[1],
-                    provider_source_elements[2],
-                    version,
-                )
-                pseudo_version = _get_go_pseudo_version(commit_url)
-
-            provider_module_version_ref = "%s@%s" % (provider_module, pseudo_version)
         else:
-            provider_module_version_ref = "%s@%s" % (provider_module, version)
+            _logger.error(
+                "Using a versionless provider module %s with a commit reference %s; converting to pseudo-version",
+                provider_source,
+                version,
+            )
+
+            commit_url = "https://api.github.com/repos/%s/%s/commits/%s" % (
+                provider_source_elements[1],
+                provider_source_elements[2],
+                version,
+            )
+            pseudo_version = _get_go_pseudo_version(commit_url)
+
+        provider_module_version_ref = "%s@%s" % (provider_module, pseudo_version)
+    else:
+        provider_module_version_ref = "%s@%s" % (provider_module, version)
 
     if is_shim:
         go = Popen(
