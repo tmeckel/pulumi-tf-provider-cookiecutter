@@ -9,14 +9,16 @@ provider based on the Pulumi Terraform Bridge.
     - [Publishing checklist](#publishing-checklist)
     - [Composing the Provider Code - Prerequisites](#composing-the-provider-code---prerequisites)
   - [Adding Mappings, Building the Provider and SDKs](#adding-mappings-building-the-provider-and-sdks)
-    - [Autogeneration of mapping](#autogeneration-of-mapping)
-    - [Manually add mapping](#manually-add-mapping)
+    {% if cookiecutter.provider_mapping_strategy != "manual" %}
+    - [Autogeneration of mappings](#autogeneration-of-mappings)
+    - [Manually add mappings](#manually-add-mappings)
+    {% else %}
+    - [Add mappings](#add-mappings)
+    {% endif %}
     - [Building the provider and SDKs](#building-the-provider-and-sdks)
   - [Sample Program](#sample-program)
   - [Add End-to-end Testing](#add-end-to-end-testing)
-{% if cookiecutter.create_github_workflows | truthy %}
   - [CI/CD with GitHub Actions](#cicd-with-github-actions)
-{% endif %}
 
 ## Creating a Pulumi Terraform Bridge Provider
 
@@ -61,7 +63,7 @@ that the publishing process is successful:
 - [ ] Check for messages of `tfgen` containing `no-resource plugin` and add
   missing Pulumi resource plugins to the `install_plugins` target in `Makefile`
 - [ ] Ensure that the `dotnet` version required by the `*.csproj`-file in
-  in the `<TargetFramework>` element is configured in the `release.yaml` file 
+  in the `<TargetFramework>` element is configured in the `release.yaml` file
 - [ ] Ensure you registered the provider in the
   `community-packages/package-list.json` in the [Pulumi Registry](https://github.com/pulumi/registry) repo
 
@@ -120,32 +122,30 @@ Pulumi provider repositories have the following general structure:
 ## Adding Mappings, Building the Provider and SDKs
 
 In this section we will add the mappings that allow the interoperation between
-the Pulumi provider and the Terraform provider.  Terraform resources map to an
-identically named concept in Pulumi.  Terraform data sources map to plain old
-functions in your supported programming language of choice.  Pulumi also allows
+the Pulumi provider and the Terraform provider. Terraform resources map to an
+identically named concept in Pulumi. Terraform data sources map to plain old
+functions in your supported programming language of choice. Pulumi also allows
 provider functions and resources to be grouped into _namespaces_ to improve the
 cohesion of a provider's code, thereby making it easier for developers to use.
 If your provider has a large number of resources, consider using namespaces to
 improve usability.
 
-### Autogeneration of mapping
+{% if cookiecutter.provider_mapping_strategy != "manual" %}
+### Autogeneration of mappings
 
-The repository contains a GO generator (`provider/generator.go`) to
-automatically create reported missing data sources and resources from `tfgen`.
+The repository utilizes the autodiscovery mechanism of Pulumi Terraform Bridge
+which automatically maps resources and data sources from the upstream Terraform
+provider to Pulumi resources and functions.
 
-The generator can be executed at any time by _building_ the target `generate`
-from the Makefile:
+However, it is still possible to configure resources and data sources manually
+via the `Resources` and `DataSources` properties of the struct
+`tfbridge.ProviderInfo`. These manual configurations have a higher precedence than
+the configurations of the autodiscovery mechanism.
 
-    ```bash
-    make generate
-    ```
-
-The generator will report all added resources and/or data sources if any where
-detected. If any missing mappings where detected and resolved the `resources.go`
-file will be formatted using `go fmt`.
-
-### Manually add mapping
-
+### Manually add mappings
+{% else %}
+### Add mappings
+{% endif %}
 The following instructions all pertain to `provider/resources.go`, in the
 section of the code where we construct a `tfbridge.ProviderInfo` object:
 
@@ -163,10 +163,10 @@ section of the code where we construct a `tfbridge.ProviderInfo` object:
 
 1. **Add CSharpName (if necessary):** Dotnet does not allow for fields named the
     same as the enclosing type, which sometimes results in errors during the
-    dotnet SDK build. If you see something like 
+    dotnet SDK build. If you see something like
     ```text
     error CS0542: 'ApiKey': member names cannot be the same as their enclosing type [/Users/guin/go/src/github.com/pulumi/pulumi-artifactory/sdk/dotnet/Pulumi.Artifactory.csproj]
-    ``` 
+    ```
     you'll want to give your Resource a CSharpName, which can have any value that makes sense:
 
     ```go
@@ -179,7 +179,7 @@ section of the code where we construct a `tfbridge.ProviderInfo` object:
         },
     },
     ```
-   
+
    [See the underlying terraform-bridge code here.](https://github.com/pulumi/pulumi-terraform-bridge/blob/master/pkg/tfbridge/info.go#L168)
 
 1. **Add data source mappings:** For each data source in the provider, add an entry in the `DataSources` property of the `tfbridge.ProviderInfo`, e.g.:
@@ -196,7 +196,7 @@ section of the code where we construct a `tfbridge.ProviderInfo` object:
    documentation is picked up by the codegen process, and that attribution for
    the upstream provider is correct, e.g.:
 
-   
+
     ```go
     GitHubOrg: "{{ cookiecutter.provider_github_organization }}",
     ```
@@ -384,10 +384,9 @@ how to configure secrets and variables for workflows for any details.
 - `NUGET_PUBLISH_KEY`: The token is required to publish the dotnet SDK to nuget.org
 - `PYPI_PASSWORD`: The token is used to publish the Python SDK on PyPi.org
 
-> **Note:**  
+> **Note:**
 > The release workflow will be triggred when a new version tag (format: `v*`) is
 > pushed to the repository.
 
 Now you are ready to use the provider, cut releases, and have some well-deserved :ice_cream:!
 {% endif %}
-
