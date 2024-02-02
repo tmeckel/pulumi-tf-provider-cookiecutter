@@ -5,12 +5,22 @@
         "editor.insertSpaces": false
     },
     "[python]": {
-        "editor.wordBasedSuggestions": false,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
         "editor.insertSpaces": true,
-        "editor.tabSize": 4
+        "editor.tabSize": 4,
+        "editor.wordBasedSuggestions": "off",
+        "gitlens.codeLens.symbolScopes": [
+            "!Module"
+        ]
     },
     "files.exclude": {
         "**/__pycache__": true,
-        ".venv": true
+        ".venv": true,
+        ".ruff_cache": true
     },
 }

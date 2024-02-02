@@ -1,4 +1,4 @@
-go 1.18
+go {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}
 
 use (
     ./provider

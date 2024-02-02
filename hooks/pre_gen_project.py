@@ -1,5 +1,6 @@
 import re
 import sys
+
 from packaging import version
 
 
@@ -34,7 +35,7 @@ VALID_CATEGORIES = [
     "utility",
     "versioncontrol",
 ]
-if not "{{ cookiecutter.provider_category }}" in VALID_CATEGORIES:
+if "{{ cookiecutter.provider_category }}" not in VALID_CATEGORIES:
     _error_exit(f"provider_category MUST BE one of {VALID_CATEGORIES}")
 
 SDK_VERSION_REGEX = r"^\s*([12]|plugin-framework)\s*$"

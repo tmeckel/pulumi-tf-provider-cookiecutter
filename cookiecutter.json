@@ -32,14 +32,23 @@
     "provider_dotnet_rootnamespace": "Pulumiverse",
     "provider_python_package": "pulumiverse_{{ cookiecutter.terraform_provider_name }}",
     "provider_java_base_package": "com.{{ cookiecutter.provider_github_organization }}",
-
-    "go_version": "1.19.8",
+    "provider_mapping_strategy": [
+        "automatic",
+        "manual"
+    ],
+    "provider_naming_strategy": [
+        "singlelevel",
+        "structured",
+        "flat"
+    ],
+    "go_version": "{{ get_go_version() }}",
     "create_github_workflows": "yes",
     "skip_go_mod_tidy": "no",
     "skip_git_init": "no",
 
-    "__terraform_bridge_version": "{{ get_latest_release_commit('pulumi-terraform-bridge') }}",
-    "__pulumi_sdk_version": "v3.81.0",
+    "__pulumi_terraform_plugin_sdkv2_version": "v2.0.0-20240129205329-74776a5cd5f9",
+    "__pulumi_terraform_bridge_version": "v3.73.0",
+    "__pulumi_sdk_version": "v3.104.2",
     "__pulumi_ctl_version": "{{ get_latest_release('pulumictl') }}",
     "__pulumi_java_version": "{{ get_latest_release('pulumi-java') }}",
     "__go_version_major": "{{ cookiecutter.go_version | version_major }}",

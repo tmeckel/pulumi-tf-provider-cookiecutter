@@ -66,7 +66,7 @@ class Version:
         for name, value in version_parts.items():
             if value < 0:
                 raise ValueError(
-                    "{!r} is negative. A version can only be positive.".format(name)
+                    f"{name!r} is negative. A version can only be positive."
                 )
 
         self._major = version_parts["major"]
@@ -376,13 +376,13 @@ prerelease='pre.2', build='build.4')
         version.update(parts)
         try:
             return Version(**version)  # type: ignore
-        except TypeError:
+        except TypeError as te:
             unknownkeys = set(parts) - set(self.to_dict())
             error = "replace() got %d unexpected keyword argument(s): %s" % (
                 len(unknownkeys),
                 ", ".join(unknownkeys),
             )
-            raise TypeError(error)
+            raise TypeError(error) from te
 
     @classmethod
     def isvalid(cls, version: str) -> bool:

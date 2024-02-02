@@ -14,6 +14,11 @@ ifeq (, $(shell which python$(PYTHON_VERSION)))
 	$(error "No python$(PYTHON_VERSION) in $(PATH)")
 endif
 
+.PHONY: lint
+lint: venv
+	@echo "Linting src ... 🧹"
+	@$(VENV_NAME)/bin/ruff check
+
 $(VENV_NAME)/bin/activate: requirements.txt
 	test -d $(VENV_NAME) || python$(PYTHON_VERSION) -m venv $(VENV_NAME)
 	${PYTHON} -m pip install -U pip
