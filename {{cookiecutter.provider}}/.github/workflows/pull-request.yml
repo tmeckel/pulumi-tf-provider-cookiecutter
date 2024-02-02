@@ -18,7 +18,7 @@ jobs:
         dotnetversion:
           - 6.0.x
         goversion:
-          - {% endraw %}- {{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}.x{% raw %}
+          - {% endraw %}{{ cookiecutter.__go_version_major }}.{{ cookiecutter.__go_version_minor }}.x{% raw %}
         nodeversion:
           - 16.x
         pythonversion:
