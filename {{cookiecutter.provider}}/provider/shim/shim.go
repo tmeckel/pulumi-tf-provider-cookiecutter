@@ -11,8 +11,8 @@ import (
 )
 
 func NewProvider() *schema.Provider {
-	{% set list = cookiecutter.terraform_provider_package_name.split('/') %}
-	p, _ := {{ list[-1] }}.New()
+	{% set provider_path = cookiecutter.terraform_provider_package_name.split('/') %}
+	p, _ := {{ provider_path | last }}.New()
 	return p
 }
 {% elif cookiecutter.terraform_sdk_version == "plugin-framework" %}
