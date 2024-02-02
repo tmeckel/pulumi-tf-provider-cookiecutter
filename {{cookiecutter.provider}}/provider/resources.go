@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:generate go run generate.go
 package {{ cookiecutter.terraform_provider_name }}
 
 import (
-	{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
 	_ "embed"
-{% endif %}
 	"fmt"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/ettle/strcase"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/tokens"
@@ -47,34 +45,77 @@ import (
 	"github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}/provider/pkg/version"
 )
 
-{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
+{% if cookiecutter.provider_mapping_strategy != "manual" %}
 //go:embed cmd/pulumi-resource-{{ cookiecutter.terraform_provider_name }}/bridge-metadata.json
 var bridgeMetadata []byte
-{% endif %}
 
+{% endif %}
 // all of the token components used below.
 const (
 	// This variable controls the default name of the package in the package
 	mainMod = "index" // the {{ cookiecutter.terraform_provider_name }} module
 )
 
-func convertName(name string) string {
-	idx := strings.Index(name, "_")
-	contract.Assertf(idx > 0 && idx < len(name)-1, "Invalid snake case name %s", name)
-	name = name[idx+1:]
-	contract.Assertf(len(name) > 0, "Invalid snake case name %s", name)
-	return strcase.ToPascal(name)
+{% if cookiecutter.provider_naming_strategy != "flat" %}
+var module_overrides = map[string]string{}
+
+{% endif %}
+func convertName(tfname string) (module string, name string) {
+	tfNameItems := strings.Split(tfname, "_")
+	contract.Assertf(len(tfNameItems) >= 2, "Invalid snake case name %s", tfname)
+	contract.Assertf(tfNameItems[0] == "{{ cookiecutter.terraform_provider_name }}", "Invalid snake case name %s. Does not start with {{ cookiecutter.terraform_provider_name }}", tfname)
+	{% if cookiecutter.provider_naming_strategy != "flat" %}
+	if len(tfNameItems) == 2 {
+		module = mainMod
+		name = tfNameItems[1]
+	} else {
+		{% if cookiecutter.provider_naming_strategy == "singlelevel" %}
+		module = strcase.ToPascal(strings.Join(tfNameItems[1:len(tfNameItems)-1], "_"))
+		name = tfNameItems[len(tfNameItems)-1]
+		{% else %}
+		module = strings.Join(tfNameItems[1:len(tfNameItems)-1], "/")
+		name = tfNameItems[len(tfNameItems)-1]
+		{% endif %}
+
+		if v, ok := module_overrides[module]; ok {
+			module = v
+		}
+	}
+	contract.Assertf(!unicode.IsDigit(rune(module[0])), "Pulumi namespace must not start with a digit: %s", name)
+	{% else %}
+	module = mainMod
+	name = strings.Join(tfNameItems[1:], "_")
+	{% endif %}
+	contract.Assertf(!unicode.IsDigit(rune(name[0])), "Pulumi name must not start with a digit: %s", name)
+	name = strcase.ToPascal(name)
+	return
 }
 
-func makeDataSource(mod string, name string) tokens.ModuleMember {
-	name = convertName(name)
+func makeDataSource(ds string) tokens.ModuleMember {
+	mod, name := convertName(ds)
 	return tfbridge.MakeDataSource("{{ cookiecutter.terraform_provider_name }}", mod, "get"+name)
 }
 
-func makeResource(mod string, res string) tokens.Type {
-	return tfbridge.MakeResource("{{ cookiecutter.terraform_provider_name }}", mod, convertName(res))
+func makeResource(res string) tokens.Type {
+	mod, name := convertName(res)
+	return tfbridge.MakeResource("{{ cookiecutter.terraform_provider_name }}", mod, name)
 }
 
+{% if cookiecutter.provider_mapping_strategy != "manual" %}
+func moduleComputeStrategy() tfbridge.Strategy {
+	return tfbridge.Strategy{
+		Resource: func(tfToken string, elem *tfbridge.ResourceInfo) error {
+			elem.Tok = makeResource(tfToken)
+			return nil
+		},
+		DataSource: func(tfToken string, elem *tfbridge.DataSourceInfo) error {
+			elem.Tok = makeDataSource(tfToken)
+			return nil
+		},
+	}
+}
+
+{% endif %}
 // preConfigureCallback is called before the providerConfigure function of the underlying provider.
 // It should validate that the provider can be configured, and provide actionable errors in the case
 // it cannot be. Configuration variables can be read from `vars` using the `stringValue` function -
@@ -85,6 +126,7 @@ func preConfigureCallback(vars resource.PropertyMap, c shim.ResourceConfig) erro
 
 // Provider returns additional overlaid schema and metadata associated with the provider..
 func Provider() tfbridge.ProviderInfo {
+	{% set provider_path = cookiecutter.terraform_provider_package_name.split('/') %}
 	// Instantiate the Terraform provider
 	{% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 		{% if cookiecutter.terraform_provider_package_name.startswith("internal") %}
@@ -95,16 +137,16 @@ func Provider() tfbridge.ProviderInfo {
 			{% endif %}
 		{% else %}
 			{% if cookiecutter.terraform_sdk_version == "1" %}
-	p := shimv1.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
+	p := shimv1.NewProvider({{ provider_path | last }}.Provider())
 			{% else %}
-	p := shimv2.NewProvider({{ cookiecutter.terraform_provider_package_name }}.Provider())
+	p := shimv2.NewProvider({{ provider_path | last }}.Provider())
 			{% endif %}
 		{% endif %}
 	{% else %}
 		{% if cookiecutter.terraform_provider_package_name.startswith("internal") %}
 	p := pf.ShimProvider(shimprovider.NewProvider())
 		{% else %}
-	p := pf.ShimProvider({{ cookiecutter.terraform_provider_package_name }}.NewProvider())
+	p := pf.ShimProvider({{ provider_path | last }}.NewProvider())
 		{% endif %}
 	{% endif %}
 
@@ -146,7 +188,7 @@ func Provider() tfbridge.ProviderInfo {
 		// should match the TF provider module's require directive, not any replace directives.
 		Version:   version.Version,
 		GitHubOrg: "{{ cookiecutter.terraform_provider_org }}",
-		{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
+		{% if cookiecutter.provider_mapping_strategy != "manual" %}
 		MetadataInfo: tfbridge.NewProviderMetadata(bridgeMetadata),
 		{% endif %}
 		Config:    map[string]*tfbridge.SchemaInfo{
@@ -219,6 +261,9 @@ func Provider() tfbridge.ProviderInfo {
 		},
 	}
 
+	{% if cookiecutter.provider_mapping_strategy != "manual" %}
+	prov.MustComputeTokens(moduleComputeStrategy())
+	{% endif %}
 	prov.SetAutonaming(255, "-")
 
 	return prov
