@@ -147,41 +147,6 @@ def go_mod_tidy(folder):
         go.wait()
 
 
-def go_mod_add_pulumi_mods(folder):
-    path = os.path.join(PROJECT_DIRECTORY, folder)
-
-    if "{{ cookiecutter.terraform_sdk_version }}" == "plugin-framework":  # noqa: PLR0133
-        go = Popen(
-            [
-                "go",
-                "get",
-                "github.com/pulumi/pulumi-terraform-bridge/pf@{{ cookiecutter.__pulumi_terraform_bridge_version }}",
-            ],
-            cwd=path,
-        )
-        go.wait()
-
-    go = Popen(
-        [
-            "go",
-            "get",
-            "github.com/pulumi/pulumi-terraform-bridge/v3@{{ cookiecutter.__pulumi_terraform_bridge_version }}",
-        ],
-        cwd=path,
-    )
-    go.wait()
-
-    go = Popen(
-        [
-            "go",
-            "get",
-            "github.com/pulumi/pulumi/sdk/v3@{{ cookiecutter.__pulumi_sdk_version }}",
-        ],
-        cwd=path,
-    )
-    go.wait()
-
-
 def go_mod_add_provider(folder, is_shim=False):  # noqa: PLR0915
     path = os.path.join(PROJECT_DIRECTORY, folder)
 
@@ -197,10 +162,12 @@ def go_mod_add_provider(folder, is_shim=False):  # noqa: PLR0915
     provider_module_version = None
     versionless_provider_module = provider_module
 
-    provider_module_parts = provider_module.split("/v")
-    if len(provider_module_parts) > 1:
-        versionless_provider_module = provider_module_parts[0]
-        provider_module_version = provider_module_parts[1]
+    try:
+        i = provider_module.rindex("/v")
+        versionless_provider_module = provider_module[:i]
+        provider_module_version = provider_module[i + 1 :]
+    except ValueError:
+        pass
 
     if not provider_source.startswith(versionless_provider_module):
         _logger.error(
@@ -319,7 +286,6 @@ else:
     go_mod_add_provider("provider")
     remove_shim()
 
-go_mod_add_pulumi_mods("provider")
 go_mod_tidy("provider")
 
 if "{{ cookiecutter.create_github_workflows }}".lower() not in [

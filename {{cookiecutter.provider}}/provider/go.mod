@@ -15,7 +15,9 @@ replace (
 
 require (
 	github.com/ettle/strcase v0.1.1
-	{% if not cookiecutter.terraform_provider_package_name.startswith("internal") %}
-	{{ cookiecutter.terraform_provider_module }} {{ cookiecutter.terraform_provider_version_or_commit | go_module_version_tag }}
+	github.com/pulumi/pulumi-terraform-bridge/v3 {{ cookiecutter.__pulumi_terraform_bridge_version }}
+	{% if cookiecutter.terraform_sdk_version == "plugin-framework" %}
+	github.com/pulumi/pulumi-terraform-bridge/pf {{ cookiecutter.__pulumi_terraform_bridge_pf_version }}
 	{% endif %}
+	github.com/pulumi/pulumi/sdk/v3 {{ cookiecutter.__pulumi_sdk_version }}
 )
