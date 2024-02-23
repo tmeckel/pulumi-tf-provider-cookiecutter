@@ -15,9 +15,18 @@ ifeq (, $(shell which python$(PYTHON_VERSION)))
 endif
 
 .PHONY: lint
-lint: venv
+lint: venv ## lint source code
 	@echo "Linting src ... 🧹"
 	@$(VENV_NAME)/bin/ruff check
+
+.PHONY: clean
+clean: ## clean project directory
+	rm -rf .tox .ruff_cache .venv __pycache__
+
+.PHONY: tests
+tests: venv ## run tests
+	@echo "Running tests ... 🧪"
+	@$(VENV_NAME)/bin/python -m tox
 
 $(VENV_NAME)/bin/activate: requirements.txt
 	test -d $(VENV_NAME) || python$(PYTHON_VERSION) -m venv $(VENV_NAME)
