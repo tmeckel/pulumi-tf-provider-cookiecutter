@@ -1,0 +1,11 @@
+diff --git a/provider/shim/shim.go b/provider/shim/shim.go
+index 664bb6f..a2707b3 100644
+--- a/provider/shim/shim.go
++++ b/provider/shim/shim.go
+@@ -6,5 +6,5 @@ import (
+ )
+
+ func NewProvider() tf.Provider {
+-	return configcat.New()
++	return configcat.New("v4")()
+ }

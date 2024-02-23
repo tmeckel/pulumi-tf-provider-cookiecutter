@@ -1,3 +1,5 @@
 cookiecutter
 pre-commit
 ruff
+pytest
+tox

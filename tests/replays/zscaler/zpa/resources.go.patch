@@ -1,0 +1,13 @@
+diff --git a/provider/resources.go b/provider/resources.go
+index e87d6ea..4f86c8d 100644
+--- a/provider/resources.go
++++ b/provider/resources.go
+@@ -98,7 +98,7 @@ func preConfigureCallback(vars resource.PropertyMap, c shim.ResourceConfig) erro
+ // Provider returns additional overlaid schema and metadata associated with the provider..
+ func Provider() tfbridge.ProviderInfo {
+        // Instantiate the Terraform provider
+-       p := shimv2.NewProvider(zpa.Provider())
++       p := shimv2.NewProvider(zpa.ZPAProvider())
+
+        // Create a Pulumi provider mapping
+        prov := tfbridge.ProviderInfo{

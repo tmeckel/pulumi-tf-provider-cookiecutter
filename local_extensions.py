@@ -18,11 +18,22 @@ def capitalize(v):
 def go_module_version(v):
     if not v:
         raise ValueError("Value is empty")
+
+    try:
+        i = v.rindex("/v")
+        v = v[i + 1 :]
+    except ValueError:
+        pass
+
     if re.match("[0-9a-f]{40}", v):
         return ""
 
     if v.lower().startswith("v"):
         v = v[1:]
+
+    if not v[0].isdigit():
+        return ""
+
     version = v.split(".")
     major = int(version[0])
     if major > 1:
