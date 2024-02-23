@@ -22,6 +22,7 @@ import (
 )
 
 func NewProvider() tf.Provider {
-		return provider.New()
+	{% set provider_path = cookiecutter.terraform_provider_package_name.split('/') %}
+	return {{ provider_path | last }}.New()
 }
 {% endif %}
