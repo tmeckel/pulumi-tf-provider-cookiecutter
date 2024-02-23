@@ -191,6 +191,11 @@ func Provider() tfbridge.ProviderInfo {
 		{% if cookiecutter.provider_mapping_strategy != "manual" %}
 		MetadataInfo: tfbridge.NewProviderMetadata(bridgeMetadata),
 		{% endif %}
+		TFProviderVersion: "{{ cookiecutter.terraform_provider_version_or_commit }}",
+		{% set tf_go_module_version = cookiecutter.terraform_provider_module | go_module_version %}
+		{% if tf_go_module_version %}
+		TFProviderModuleVersion: "{{ tf_go_module_version.lstrip("/") }}",
+		{% endif %}
 		Config:    map[string]*tfbridge.SchemaInfo{
 			// Add any required configuration here, or remove the example below if
 			// no additional points are required.
