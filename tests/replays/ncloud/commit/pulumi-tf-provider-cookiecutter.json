@@ -1,0 +1,97 @@
+{
+  "cookiecutter": {
+    "terraform_provider_name": "ncloud",
+    "terraform_provider_org": "ncloud",
+    "terraform_provider_source": "github.com/NaverCloudPlatform/terraform-provider-ncloud",
+    "terraform_provider_version_or_commit": "435a64bf34709fd5116b5701c20a0db867d3d78c",
+    "terraform_provider_module": "github.com/terraform-providers/terraform-provider-ncloud",
+    "terraform_provider_package_name": "ncloud",
+    "terraform_sdk_version": "2",
+    "provider": "pulumi-ncloud",
+    "provider_display_name": "Ncloud",
+    "provider_github_organization": "pulumiverse",
+    "provider_publisher": "pulumiverse",
+    "provider_homepage": "https://github.com/pulumiverse/pulumi-ncloud",
+    "provider_logoUrl": "https://raw.githubusercontent.com/pulumiverse/pulumi-ncloud/main/docs/ncloud.png",
+    "provider_description": "A Pulumi package for creating and managing Ncloud resources",
+    "provider_category": "cloud",
+    "provider_download_url": "github://api.github.com/pulumiverse/pulumi-ncloud",
+    "provider_javascript_package": "@pulumiverse/ncloud",
+    "provider_dotnet_rootnamespace": "Pulumiverse",
+    "provider_python_package": "pulumiverse_ncloud",
+    "provider_java_base_package": "com.pulumiverse",
+    "provider_mapping_strategy": "automatic",
+    "provider_naming_strategy": "singlelevel",
+    "go_version": "1.21.7",
+    "create_github_workflows": "yes",
+    "skip_go_mod_tidy": "no",
+    "skip_git_init": "no",
+    "__pulumi_terraform_plugin_sdkv2_version": "v2.0.0-20240129205329-74776a5cd5f9",
+    "__pulumi_terraform_bridge_version": "v3.73.0",
+    "__pulumi_terraform_bridge_pf_version": "v0.26.0",
+    "__pulumi_sdk_version": "v3.104.2",
+    "__pulumi_ctl_version": "v0.0.46",
+    "__pulumi_java_version": "v0.9.9",
+    "__go_version_major": "1",
+    "__go_version_minor": "21",
+    "_jinja2_env_vars": {
+      "lstrip_blocks": true,
+      "trim_blocks": true
+    },
+    "_copy_without_render": [],
+    "_extensions": [
+      "local_extensions.LocalExtension"
+    ],
+    "_template": "/home/vagrant/work/pulumi-tf-provider-cookiecutter",
+    "_output_dir": "/tmp",
+    "_repo_dir": "/home/vagrant/work/pulumi-tf-provider-cookiecutter",
+    "_checkout": null
+  },
+  "_cookiecutter": {
+    "terraform_provider_name": "terraform-provider-name",
+    "terraform_provider_org": "terraform-providers",
+    "terraform_provider_source": "github.com/{{ cookiecutter.terraform_provider_org }}/terraform-provider-{{ cookiecutter.terraform_provider_name }}",
+    "terraform_provider_version_or_commit": "0.0.0",
+    "terraform_provider_module": "github.com/{{ cookiecutter.terraform_provider_org }}/terraform-provider-{{ cookiecutter.terraform_provider_name }}{{ cookiecutter.terraform_provider_version_or_commit | go_module_version }}",
+    "terraform_provider_package_name": "{{ cookiecutter.terraform_provider_name }}",
+    "terraform_sdk_version": [
+      "1",
+      "2",
+      "plugin-framework"
+    ],
+    "provider": "pulumi-{{ cookiecutter.terraform_provider_name }}",
+    "provider_display_name": "{{ cookiecutter.terraform_provider_name | capitalize }}",
+    "provider_github_organization": "pulumiverse",
+    "provider_publisher": "{{ cookiecutter.provider_github_organization }}",
+    "provider_homepage": "https://github.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}",
+    "provider_logoUrl": "https://raw.githubusercontent.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}/main/docs/{{ cookiecutter.terraform_provider_name }}.png",
+    "provider_description": "A Pulumi package for creating and managing {{ cookiecutter.terraform_provider_name | capitalize }} resources",
+    "provider_category": [
+      "cloud",
+      "database",
+      "infrastructure",
+      "monitoring",
+      "network",
+      "utility",
+      "versioncontrol"
+    ],
+    "provider_download_url": "github://api.github.com/{{ cookiecutter.provider_github_organization }}/{{ cookiecutter.provider }}",
+    "provider_javascript_package": "@pulumiverse/{{ cookiecutter.terraform_provider_name }}",
+    "provider_dotnet_rootnamespace": "Pulumiverse",
+    "provider_python_package": "pulumiverse_{{ cookiecutter.terraform_provider_name }}",
+    "provider_java_base_package": "com.{{ cookiecutter.provider_github_organization }}",
+    "provider_mapping_strategy": [
+      "automatic",
+      "manual"
+    ],
+    "provider_naming_strategy": [
+      "singlelevel",
+      "structured",
+      "flat"
+    ],
+    "go_version": "{{ get_go_version() }}",
+    "create_github_workflows": "yes",
+    "skip_go_mod_tidy": "no",
+    "skip_git_init": "no"
+  }
+}
