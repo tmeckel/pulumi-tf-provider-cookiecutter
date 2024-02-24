@@ -15,6 +15,10 @@ def capitalize(v):
     return v.capitalize()
 
 
+def is_commit_hash(v):
+    return re.match("[0-9a-f]{40}", v)
+
+
 def go_module_version(v):
     if not v:
         raise ValueError("Value is empty")
@@ -121,3 +125,4 @@ class LocalExtension(Extension):
         environment.filters["go_module_version_tag"] = go_module_version_tag
         environment.filters["version_major"] = version_major
         environment.filters["version_minor"] = version_minor
+        environment.filters["is_commit_hash"] = is_commit_hash
