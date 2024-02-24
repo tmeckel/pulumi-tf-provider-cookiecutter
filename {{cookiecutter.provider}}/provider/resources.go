@@ -196,6 +196,9 @@ func Provider() tfbridge.ProviderInfo {
 		{% if tf_go_module_version %}
 		TFProviderModuleVersion: "{{ tf_go_module_version.lstrip("/") }}",
 		{% endif %}
+		{% if cookiecutter.terraform_provider_module != cookiecutter.terraform_provider_source or cookiecutter.terraform_provider_module | go_module_version != cookiecutter.terraform_provider_version_or_commit | go_module_version %}
+		UpstreamRepoPath: "./upstream",
+		{% endif %}
 		Config:    map[string]*tfbridge.SchemaInfo{
 			// Add any required configuration here, or remove the example below if
 			// no additional points are required.

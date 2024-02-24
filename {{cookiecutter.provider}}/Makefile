@@ -1,8 +1,10 @@
+ROOT_DIR         := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 SHELL            := /bin/bash
 PROJECT          := github.com/{{ cookiecutter.provider_github_organization }}/pulumi-{{ cookiecutter.terraform_provider_name }}
 NODE_MODULE_NAME := {{ cookiecutter.provider_javascript_package }}
 TF_NAME          := {{ cookiecutter.terraform_provider_name }}
 PROVIDER_PATH    := provider
+PROVIDER_VERSION := {{ cookiecutter.terraform_provider_version_or_commit }}
 VERSION_PATH     := ${PROVIDER_PATH}/pkg/version.Version
 
 JAVA_GEN         := pulumi-java-gen
@@ -43,7 +45,21 @@ development:: install_plugins provider lint_provider build_sdks install_sdks cle
 build:: install_plugins provider build_sdks install_sdks
 only_build:: build
 
+{% if cookiecutter.terraform_provider_module != cookiecutter.terraform_provider_source or cookiecutter.terraform_provider_module | go_module_version != cookiecutter.terraform_provider_version_or_commit | go_module_version %}
+upstream/.git:
+	@echo "Initializing upstream" ; \
+	{% if cookiecutter.terraform_provider_version_or_commit | is_commit_hash %}
+	git clone  'https://{{ cookiecutter.terraform_provider_source }}' upstream && \
+	cd upstream && \
+	git -c advice.detachedHead=false checkout $(PROVIDER_VERSION)
+	{% else %}
+	git -c advice.detachedHead=false clone --depth 1 --branch 'v$(PROVIDER_VERSION)' 'https://{{ cookiecutter.terraform_provider_source }}' upstream
+	{% endif %}
+
+tfgen:: install_plugins upstream/.git
+{% else %}
 tfgen:: install_plugins
+{% endif %}
 	(cd provider && go build -o $(WORKING_DIR)/bin/${TFGEN} -ldflags "-X ${PROJECT}/${VERSION_PATH}=${VERSION}" ${PROJECT}/${PROVIDER_PATH}/cmd/${TFGEN})
 	$(WORKING_DIR)/bin/${TFGEN} schema --out provider/cmd/${PROVIDER}
 	(cd provider && VERSION=$(VERSION) go generate cmd/${PROVIDER}/main.go)
