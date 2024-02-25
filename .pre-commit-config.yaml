@@ -18,7 +18,7 @@ repos:
     rev: 'v1.35.1'
     hooks:
       - id: 'yamllint'
-        exclude: 'azure-pipelines.yml'
+        exclude: '.github/workflows'
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
