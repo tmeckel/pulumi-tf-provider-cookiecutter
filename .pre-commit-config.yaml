@@ -18,7 +18,10 @@ repos:
     rev: 'v1.35.1'
     hooks:
       - id: 'yamllint'
-        exclude: '.github/workflows'
+        exclude: (?x)^(
+            .github/workflows|
+            \{\{cookiecutter.provider\}\}/.goreleaser.yml
+          )$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
