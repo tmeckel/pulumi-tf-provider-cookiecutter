@@ -5,7 +5,7 @@ ifneq (,$(wildcard ./.env))
 endif
 
 VENV_NAME?=.venv
-PYTHON_VERSION?=3.9
+PYTHON_VERSION?=3.10
 PYTHON=${VENV_NAME}/bin/python
 
 venv: $(VENV_NAME)/bin/activate
