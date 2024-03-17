@@ -11,7 +11,11 @@ PYTHON=${VENV_NAME}/bin/python
 venv: $(VENV_NAME)/bin/activate
 
 ifeq (, $(shell which python$(PYTHON_VERSION)))
-	$(error "No python$(PYTHON_VERSION) in $(PATH)")
+  $(error No python$(PYTHON_VERSION) in $(PATH))
+endif
+
+ifeq (, $(shell which action-validator))
+  $(error action-validator not found in $(PATH). Please install from mpalmer/action-validator)
 endif
 
 .PHONY: lint
