@@ -60,6 +60,8 @@ const (
 var module_overrides = map[string]string{}
 
 {% endif %}
+var name_overrides = map[string]string{}
+
 func convertName(tfname string) (module string, name string) {
 	tfNameItems := strings.Split(tfname, "_")
 	contract.Assertf(len(tfNameItems) >= 2, "Invalid snake case name %s", tfname)
@@ -86,8 +88,11 @@ func convertName(tfname string) (module string, name string) {
 	module = mainMod
 	name = strings.Join(tfNameItems[1:], "_")
 	{% endif %}
-	contract.Assertf(!unicode.IsDigit(rune(name[0])), "Pulumi name must not start with a digit: %s", name)
 	name = strcase.ToPascal(name)
+	if v, ok := name_overrides[name]; ok {
+		name = v
+	}
+	contract.Assertf(!unicode.IsDigit(rune(name[0])), "Pulumi name must not start with a digit: %s", name)
 	return
 }
 
