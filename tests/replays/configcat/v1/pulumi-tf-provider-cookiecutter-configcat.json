@@ -28,6 +28,7 @@
     "skip_git_init": "no",
     "__pulumi_terraform_plugin_sdkv2_version": "v2.0.0-20240129205329-74776a5cd5f9",
     "__pulumi_terraform_bridge_version": "v3.73.0",
+    "__pulumi_terraform_bridge_pf_version": "v0.26.0",
     "__pulumi_sdk_version": "v3.104.2",
     "__pulumi_ctl_version": "v0.0.46",
     "__pulumi_java_version": "v0.9.9",
