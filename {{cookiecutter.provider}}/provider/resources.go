@@ -29,6 +29,7 @@ import (
 	"github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfbridge"
 {% if cookiecutter.terraform_sdk_version != "plugin-framework" %}
 	{% if cookiecutter.terraform_sdk_version == "1" %}
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	shimv1 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v1"
 	{% else %}
 	shimv2 "github.com/pulumi/pulumi-terraform-bridge/v3/pkg/tfshim/sdk-v2"
@@ -110,11 +111,15 @@ func makeResource(res string) tokens.Type {
 func moduleComputeStrategy() tfbridge.Strategy {
 	return tfbridge.Strategy{
 		Resource: func(tfToken string, elem *tfbridge.ResourceInfo) error {
-			elem.Tok = makeResource(tfToken)
+			if elem.Tok == "" {
+				elem.Tok = makeResource(tfToken)
+			}
 			return nil
 		},
 		DataSource: func(tfToken string, elem *tfbridge.DataSourceInfo) error {
-			elem.Tok = makeDataSource(tfToken)
+			if elem.Tok == "" {
+				elem.Tok = makeDataSource(tfToken)
+			}
 			return nil
 		},
 	}
@@ -142,7 +147,7 @@ func Provider() tfbridge.ProviderInfo {
 			{% endif %}
 		{% else %}
 			{% if cookiecutter.terraform_sdk_version == "1" %}
-	p := shimv1.NewProvider({{ provider_path | last }}.Provider())
+	p := shimv1.NewProvider({{ provider_path | last }}.Provider().(*schema.Provider))
 			{% else %}
 	p := shimv2.NewProvider({{ provider_path | last }}.Provider())
 			{% endif %}
