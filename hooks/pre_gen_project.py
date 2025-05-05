@@ -10,7 +10,7 @@ def _error_exit(msg):
     sys.exit(1)
 
 
-PROVIDER_NAME_REGEX = r"^[a-zA-Z0-9]+$"
+PROVIDER_NAME_REGEX = r"^[a-zA-Z0-9-]+$"
 provider_name = "{{ cookiecutter.terraform_provider_name }}"
 if re.match(r"terraform-?provider-?", provider_name):
     _error_exit("provider name MUST NOT start with terraform-provider-")
