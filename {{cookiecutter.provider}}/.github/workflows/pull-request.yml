@@ -49,7 +49,7 @@ jobs:
         repo: pulumi/pulumictl
 
     - name: Install pulumi
-      uses: pulumi/actions@v6
+      uses: pulumi/actions@v7
 
     - if: ${{ matrix.language == 'nodejs'}}
       name: Setup Node
